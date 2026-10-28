@@ -12,6 +12,7 @@
 
 ### Personal Folders :
 - `docs` : ou on peut creer chacune son propre fichier markdown pour quelque notes a ecrire ou comprendre 
-
+- `report` : folder qui contient un fichier markdown pour les jotes qui concerne le rapport , juste des notes pas necessairement le rapport lui meme 
+- `venv ` : c 
 
 
