@@ -1,6 +1,4 @@
-### TP1 :
-
-![alt text](image.png)
+### TP1 notes :
 
 - ` Random100.txt` , 100 nombres premiers au hasard
 
