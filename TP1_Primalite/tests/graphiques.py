@@ -1,8 +1,8 @@
 """Trace les graphiques du TP1 a partir des CSV du dossier resultats/.
 
-Usage (depuis le dossier TP1_Primalite) :
-    python graphiques.py
-Cree le dossier graphes/ avec une image PNG par graphique.
+Usage (depuis n'importe quel dossier) :
+    python tests/graphiques.py
+Lit tests/resultats/*.csv et cree tests/graphes/ avec une image PNG par graphique.
 """
 import csv
 import glob
@@ -12,7 +12,11 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 
 ALGOS = ["A1", "A2", "A3", "A4", "A5", "A6"]
-os.makedirs("graphes", exist_ok=True)
+# Chemins calcules a partir de l'emplacement du script : marche quel que soit le dossier courant
+DOSSIER = os.path.dirname(os.path.abspath(__file__))
+RESULTATS = os.path.join(DOSSIER, "resultats")
+GRAPHES = os.path.join(DOSSIER, "graphes")
+os.makedirs(GRAPHES, exist_ok=True)
 
 
 def lire(fichier):
@@ -27,7 +31,7 @@ def lire(fichier):
     return lignes
 
 
-for fichier in sorted(glob.glob("resultats/*.csv")):
+for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.csv"))):
     nom = os.path.splitext(os.path.basename(fichier))[0]
     data = lire(fichier)
     if not data:
@@ -48,7 +52,7 @@ for fichier in sorted(glob.glob("resultats/*.csv")):
     plt.grid(True, which="both", alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"graphes/{nom}_temps_vs_N.png", dpi=150)
+    plt.savefig(os.path.join(GRAPHES, f"{nom}_temps_vs_N.png"), dpi=150)
     plt.close()
 
     # --- Graphique 2 : temps moyen par nombre de chiffres ---
@@ -70,7 +74,7 @@ for fichier in sorted(glob.glob("resultats/*.csv")):
     plt.grid(True, which="both", alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"graphes/{nom}_par_chiffres.png", dpi=150)
+    plt.savefig(os.path.join(GRAPHES, f"{nom}_par_chiffres.png"), dpi=150)
     plt.close()
 
     # --- Moyenne de chaque algo sur tout le fichier ---
@@ -79,5 +83,4 @@ for fichier in sorted(glob.glob("resultats/*.csv")):
         v = [d["T_" + a] for d in data if d["T_" + a] >= 0]
         print(f"  {a} : {sum(v) / len(v):.9f} s" if v else f"  {a} : non mesure")
 
-print("\nGraphiques enregistres dans le dossier graphes/")
-
+print("\nGraphiques enregistres dans", GRAPHES)

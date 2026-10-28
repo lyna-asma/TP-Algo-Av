@@ -204,6 +204,42 @@ clean:
 ```
 Utilisation : `make`, `make clean`.
 
+## 11 bis. Structure du projet et commandes du TP1
+
+```
+TP1_Primalite/
+├── code/      tp1.c, tp1.exe
+├── data/      Random100.txt, Random1000.txt, Test-1.txt, Test-2.txt, Test-3.txt
+├── tests/     graphiques.py
+│   └── resultats/   les CSV produits par tp1.exe
+└── docs/      notes et documentation
+```
+Toutes les commandes se lancent **depuis `TP1_Primalite`** (les chemins sont relatifs au dossier courant) :
+```powershell
+cd C:\Users\lyna\Desktop\TP-Algo-Av\TP1_Primalite
+gcc -O2 code\tp1.c -o code\tp1.exe
+cmd /c ".\code\tp1.exe data\Test-3.txt > tests\resultats\Test-3.csv"
+```
+Pour les 5 fichiers d'un coup :
+```powershell
+foreach ($f in 'Random100','Random1000','Test-1','Test-2','Test-3') {
+    cmd /c ".\code\tp1.exe data\$f.txt > tests\resultats\$f.csv"
+}
+```
+
+### Environnement Python (pour les graphiques)
+Un environnement virtuel (`venv`) est **recommandé, pas obligatoire** : il isole les bibliothèques du projet (matplotlib) du Python du système. Depuis `TP1_Primalite` :
+```powershell
+python -m venv .venv                 # crée l'environnement (une seule fois)
+.\.venv\Scripts\Activate.ps1         # l'active : (.venv) apparaît dans le terminal
+pip install matplotlib               # installe dans le venv (une seule fois)
+python tests\graphiques.py           # lance le script -> tests\graphes\*.png
+deactivate                           # quitte l'environnement
+```
+- À chaque nouveau terminal, refaire seulement l'activation (`Activate.ps1`).
+- Si PowerShell refuse le script : `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+- Sans venv, `pip install matplotlib` puis `python tests\graphiques.py` marche aussi.
+
 ## 12. Débogage et vérification
 
 - `gcc -Wall -Wextra` : lire **tous** les warnings.

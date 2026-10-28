@@ -1,7 +1,7 @@
 # TP1 – Primalité : le code `tp1.c` expliqué ligne par ligne
 
 > Rôle de cette séance : **Testeur** (étape 3). Pour tester, il faut comprendre l'étape 1 (données) et l'étape 2 (code).
-> ⚠️ Le fichier `tp1.c` du dossier **ne contient pas A5 et A6** (elles sont seulement dans `lyna.md`). Voir la section 9.
+> Le code est dans `code/tp1.c` (A5 et A6 y ont été ajoutées depuis `lyna.md`). Commandes de test : section 10.
 
 ---
 
@@ -296,28 +296,30 @@ Commande type : `gcc tp1.c -o tp1.exe -lm` (ajouter `-O2` pour optimiser : là `
 
 ## 9. Points d'attention pour TOI (le testeur)
 
-1. **`tp1.c` est incomplet** : `A5` et `A6` sont **utilisées** (lignes 112, 118) mais **non définies** dans le fichier (elles sont seulement dans `lyna.md`). Compilé tel quel, il échouera (« undefined reference to A5 »). Le `tp1.exe` existant a sans doute été compilé avec une version complète. → Demande à l'équipe la version finale du `.c`, ou colle A5/A6 avant `main`.
+1. **Structure du projet** : le code est dans `code/tp1.c`, les données dans `data/`, les CSV dans `tests/resultats/`, les graphiques dans `tests/graphes/`. Toutes les commandes ci-dessous se lancent **depuis le dossier `TP1_Primalite`**.
+   *(A5 et A6, qui manquaient dans l'ancienne version de `tp1.c`, ont été ajoutées depuis `lyna.md` : le fichier compile maintenant.)*
 2. `stdlib.h` inutile ; `volatile` est en commentaire sur `i` (A1) — pas un bug.
 3. Pour le CSV : `-1` = non mesuré (n > 10⁹ pour A1–A4). Dans Excel/Python, **filtrer ces -1** avant de tracer (et ne pas les prendre pour un vrai temps).
-4. Commandes à lancer (pour chaque fichier `data/*.txt`) :
-   ```
-   tp1.exe Random100.txt  > resultats_Random100.csv
-   tp1.exe Random1000.txt > resultats_Random1000.csv
-   tp1.exe Test-1.txt     > resultats_Test-1.csv
-   tp1.exe Test-2.txt     > resultats_Test-2.csv
-   tp1.exe Test-3.txt     > resultats_Test-3.csv
-   ```
-5. Les données (voir `lyna.md`) : `Random100/1000` (premiers aléatoires), `Test-1` (100 premiers entre 10³ et 10⁶), `Test-2` (10 premiers par nombre de chiffres de 3 à 12... ), `Test-3` (10 à 3, 6, 9 et 12 chiffres). Elles ne contiennent que des **premiers** = pire cas des algorithmes.
+4. Commandes de compilation et de test : voir la section 10 ci-dessous.5. Les données (voir `lyna.md`) : `Random100/1000` (premiers aléatoires), `Test-1` (100 premiers entre 10³ et 10⁶), `Test-2` (10 premiers par nombre de chiffres de 3 à 12... ), `Test-3` (10 à 3, 6, 9 et 12 chiffres). Elles ne contiennent que des **premiers** = pire cas des algorithmes.
 6. Graphiques utiles : temps moyen par nombre de chiffres (échelle **log**), un courbe par algo ; rapport A1/A5 ; vérifier que la théorie tient (O(n) vs O(√n) : ×10 sur n → ×10 sur A1 mais ×≈3,16 sur A5).
 7. Quand tu relances plusieurs fois, les temps varient légèrement : fermer les autres programmes, même machine pour tous les tests, et le préciser dans le rapport (CPU, OS, compilateur, options `-O`).
 
 
-## 10. Comandes de test (par execution du fichier C sur les differentes donnees)
+## 10. Commandes de test (depuis le dossier `TP1_Primalite`)
 
-``` 
-cmd /c ".\tp1.exe data\Test-1.txt > resultats\Test-1.csv"
-cmd /c ".\tp1.exe data\Random100.txt > resultats\Random100.csv"
-cmd /c ".\tp1.exe data\Random1000.txt > resultats\Random1000.csv"
-cmd /c ".\tp1.exe data\Test-2.txt > resultats\Test-2.csv"
-cmd /c ".\tp1.exe data\Test-3.txt > resultats\Test-3.csv"
+```powershell
+cd C:\Users\lyna\Desktop\TP-Algo-Av\TP1_Primalite
+
+# 1) Compiler (a refaire a chaque modification du .c)
+gcc -O2 code\tp1.c -o code\tp1.exe
+
+# 2) Lancer sur chaque fichier de donnees (le CSV est cree dans tests\resultats)
+cmd /c ".\code\tp1.exe data\Test-1.txt > tests\resultats\Test-1.csv"
+cmd /c ".\code\tp1.exe data\Random100.txt > tests\resultats\Random100.csv"
+cmd /c ".\code\tp1.exe data\Random1000.txt > tests\resultats\Random1000.csv"
+cmd /c ".\code\tp1.exe data\Test-2.txt > tests\resultats\Test-2.csv"
+cmd /c ".\code\tp1.exe data\Test-3.txt > tests\resultats\Test-3.csv"
+
+# 3) Graphiques (voir la section "Environnement Python" de rappel_langage_C.md)
+python tests\graphiques.py
 ```
