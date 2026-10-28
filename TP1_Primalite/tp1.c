@@ -6,11 +6,18 @@
 typedef long long ll;
 
 /* Au-dela de cette valeur, les algorithmes en O(n) sont trop lents : on les saute */
+// define est une constante de compilation, on peut la modifier avec -D LIMITE_LINEAIRE=... lors de la compilation
+// ll est un type entier long long, qui peut contenir des valeurs plus grandes que int ou long
+// cette constante est specialement utile pour les algorithmes A1, A2, A3 et A4, qui sont en O(n) et donc trop lents pour de grandes valeurs de n
 #define LIMITE_LINEAIRE 1000000000LL
 
 /* ---------- Algorithme A1 : i de 2 a n-1 ---------- */
 int A1(ll n) {
     int premier = 1;
+    // l'intruction volatile empeche le compilateur d'optimiser la variable i, ce qui est important pour mesurer correctement le temps d'execution
+    // ll i = 2;  // on peut aussi utiliser "volatile ll i = 2;" pour la meme raison
+    // la volatilite est simplement une indication pour le compilateur que la variable peut changer de maniere inattendue, donc il ne doit pas optimiser son utilisation
+    // par optimisation je veux dire que le compilateur pourrait, par exemple, remplacer la variable i par une valeur constante si il pense que i ne change pas, ce qui fausserait la mesure du temps d'execution
     ll i = 2;
     while (i <= n - 1 && premier == 1) {
         if (n % i == 0) premier = 0;
@@ -31,8 +38,10 @@ int A2(ll n) {
 }
 
 /* ---------- Algorithme A3 : n pair elimine, puis i impair de 3 a n-2 ---------- */
+//
 int A3(ll n) {
     int premier;
+    // ll 
     ll i;
     if (n != 2) {
         if (n % 2 == 0) premier = 0;
@@ -66,36 +75,7 @@ int A4(ll n) {
     return premier;
 }
 
-/* ---------- Algorithme A5 : i de 2 a sqrt(n) ---------- */
-int A5(ll n) {
-    int premier = 1;
-    ll i = 2;
-    ll r = (ll) sqrt((double) n);   /* calcule une seule fois, hors de la boucle */
-    while (i <= r && premier == 1) {
-        if (n % i == 0) premier = 0;
-        else i = i + 1;
-    }
-    return premier;
-}
 
-/* ---------- Algorithme A6 : n pair elimine, puis i impair de 3 a sqrt(n) ---------- */
-int A6(ll n) {
-    int premier;
-    ll i;
-    if (n != 2) {
-        if (n % 2 == 0) premier = 0;
-        else {
-            premier = 1;
-            i = 3;
-            ll r = (ll) sqrt((double) n);
-            while (i <= r && premier == 1) {
-                if (n % i == 0) premier = 0;
-                else i = i + 2;
-            }
-        }
-    } else premier = 1;
-    return premier;
-}
 
 /* Repete l'appel jusqu'a 0.05 s au total, puis renvoie le temps moyen (en s) */
 double mesurer(int (*f)(ll), ll n) {
