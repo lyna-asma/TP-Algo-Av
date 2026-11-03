@@ -1,7 +1,7 @@
 # TP1 – Primalité : le code `tp1.c` expliqué ligne par ligne
 
 > Rôle de cette séance : **Testeur** (étape 3). Pour tester, il faut comprendre l'étape 1 (données) et l'étape 2 (code).
-> Le code est dans `code/tp1.c` (A5 et A6 y ont été ajoutées depuis `lyna.md`). Commandes de test : section 10.
+> Le code est dans `code/tp1.c`. Commandes de test : section 10.
 
 ---
 
@@ -9,12 +9,12 @@
 
 ```
 Étape 1 (TP0)           Étape 2 (TP1 code)              Étape 3 (TOI)                 Étape 4
-script Python  ──────►  tp1.c  (6 algos A1..A6)  ─────►  tp1.exe Test-3.txt > r.csv ──► rapport
+script Python  ──────►  tp1.c  (4 algos A1..A4)  ─────►  tp1.exe Test-3.txt > r.csv ──► rapport
 génère data/*.txt       + fonction de mesure du temps    graphiques depuis le CSV
 ```
 
 **Problème** : étant donné un entier `n`, est-il premier ? (divisible seulement par 1 et lui-même.)
-**But du TP** : comparer 6 façons de le tester et voir comment leur **temps** grandit avec `n` (complexité).
+**But du TP** : comparer 4 façons de le tester et voir comment leur **temps** grandit avec `n` (complexité).
 
 | Algo | Teste les diviseurs `i` de… | Pas | Complexité (en nombre de tours) |
 |---|---|---|---|
@@ -22,11 +22,8 @@ génère data/*.txt       + fonction de mesure du temps    graphiques depuis le 
 | A2 | 2 → n/2 | +1 | O(n) (2× moins que A1) |
 | A3 | (pair éliminé) 3 → n-2 | +2 | O(n) (≈ 2× moins que A1) |
 | A4 | (pair éliminé) 3 → n/2 | +2 | O(n) (≈ 4× moins que A1) |
-| A5 | 2 → √n | +1 | O(√n) |
-| A6 | (pair éliminé) 3 → √n | +2 | O(√n) (2× moins que A5) |
 
 Pourquoi n/2 suffit : un diviseur de `n` plus grand que n/2 (autre que n) n'existe pas.
-Pourquoi √n suffit : si `n = a × b`, un des deux facteurs est ≤ √n. Donc si aucun diviseur ≤ √n → premier.
 Pourquoi éliminer les pairs : si `n` est pair (et ≠ 2) il n'est pas premier ; sinon aucun diviseur pair ne peut le diviser → on saute les `i` pairs (pas de 2).
 
 ---
@@ -37,7 +34,6 @@ Pourquoi éliminer les pairs : si `n` est pair (et ≠ 2) il n'est pas premier ;
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
 ```
 
 `#include` est une **directive du préprocesseur** : *avant* la compilation, un programme appelé préprocesseur remplace la ligne par le **contenu du fichier d'en-tête** (`.h`). Un `.h` contient seulement des **déclarations** (« la fonction `printf` existe et ressemble à ça »). Le code réel est dans la bibliothèque standard, liée à la fin (édition de liens / *linking*). Les `< >` signifient « cherche dans les dossiers du compilateur » (avec `" "` on chercherait d'abord dans ton dossier).
@@ -47,9 +43,7 @@ Pourquoi éliminer les pairs : si `n` est pair (et ≠ 2) il n'est pas premier ;
 | `stdio.h` (**st**an**d**ard **i**nput/**o**utput) | entrées/sorties : `printf`, `fopen`, `fscanf`, `fclose`, `fflush`, type `FILE`, `stdout` | afficher le CSV, lire le fichier de nombres |
 | `stdlib.h` | utilitaires généraux (`malloc`, `atoi`, `exit`, `rand`…) | **pas vraiment utilisé** ici (inclus par habitude) |
 | `time.h` | `clock()`, type `clock_t`, constante `CLOCKS_PER_SEC` | mesurer le temps |
-| `math.h` | `sqrt`, `pow`, `floor`… | `sqrt` dans A5/A6 |
 
-> Sous gcc/Linux, `math.h` demande `-lm` à la compilation (lier la bibliothèque maths). Sous MinGW/Windows souvent inutile.
 
 ---
 
@@ -135,10 +129,6 @@ int A3(ll n) {
 ### A4
 Comme A3 avec `i <= n / 2`.
 
-### A5 / A6 (dans `lyna.md`)
-- `(ll) sqrt((double) n)` : `sqrt` travaille en `double` (réel 64 bits), donc **cast** `(double)` du `n` ; puis `(ll)` re-convertit le résultat en entier (troncature). Calculé **une seule fois** avant la boucle (sinon on recalculerait la racine à chaque tour = lent).
-- Remarque : un `double` représente exactement les entiers jusqu'à 2⁵³ ≈ 9 × 10¹⁵ → OK pour 12 chiffres.
-- Pour n=1 : A5 renvoie 1 (boucle vide) alors que 1 n'est pas premier — non gênant car les données ne contiennent que des premiers ≥ 2.
 
 ---
 
@@ -160,9 +150,9 @@ double mesurer(int (*f)(ll), ll n) {
 }
 ```
 
-- **`int (*f)(ll)`** = **pointeur de fonction** : `f` est une variable qui contient *l'adresse d'une fonction* prenant un `ll` et renvoyant un `int`. Lecture : « f est un pointeur (`*f`) vers une fonction `(ll)` qui renvoie `int` ». Les parenthèses autour de `*f` sont obligatoires (sinon ce serait une fonction qui renvoie un `int*`). Grâce à ça, **une seule** fonction `mesurer` sert pour A1…A6 : `mesurer(A3, n)` (le nom d'une fonction sans parenthèses = son adresse).
+- **`int (*f)(ll)`** = **pointeur de fonction** : `f` est une variable qui contient *l'adresse d'une fonction* prenant un `ll` et renvoyant un `int`. Lecture : « f est un pointeur (`*f`) vers une fonction `(ll)` qui renvoie `int` ». Les parenthèses autour de `*f` sont obligatoires (sinon ce serait une fonction qui renvoie un `int*`). Grâce à ça, **une seule** fonction `mesurer` sert pour A1…A4 : `mesurer(A3, n)` (le nom d'une fonction sans parenthèses = son adresse).
 - **`clock()`** : renvoie le temps CPU consommé par le programme depuis son début, en « ticks » (type `clock_t`). `CLOCKS_PER_SEC` = nombre de ticks par seconde (1000 sous Windows). `(clock() - deb) / CLOCKS_PER_SEC` → secondes. Le `(double)` évite une division entière qui donnerait 0.
-- **Pourquoi répéter (`do { } while`)** : la résolution de `clock()` est ~1 ms. Un appel de A6 sur 600 → quelques nanosecondes, donc impossible à mesurer en un coup. On **répète jusqu'à cumuler 0,05 s** puis on divise par le nombre de répétitions `reps` : **temps moyen d'un appel**.
+- **Pourquoi répéter (`do { } while`)** : la résolution de `clock()` est ~1 ms. Un appel de A4 sur 600 → quelques nanosecondes, donc impossible à mesurer en un coup. On **répète jusqu'à cumuler 0,05 s** puis on divise par le nombre de répétitions `reps` : **temps moyen d'un appel**.
 - `do { ... } while (cond);` : comme `while`, mais le corps s'exécute **au moins une fois** (le `;` final est obligatoire).
 - `reps++` : incrémente de 1 (équivaut à `reps = reps + 1`).
 - **`volatile int res`** + `res = f(n)` : force le compilateur à vraiment *appeler* `f` à chaque tour (il ne peut pas dire « le résultat est inutile, je supprime l'appel »).
@@ -208,14 +198,14 @@ Si l'utilisateur n'a pas donné de fichier → message + sortie avec code 1 (err
 - `%s` = format pour une chaîne.
 
 ```c
-    int (*algo[6])(ll) = {A1, A2, A3, A4, A5, A6};
+    int (*algo[4])(ll) = {A1, A2, A3, A4};
 ```
-**Tableau de 6 pointeurs de fonctions**. `algo[0]` = A1 … `algo[5]` = A6. Permet de boucler sur les algos avec un indice `k`.
+**Tableau de 4 pointeurs de fonctions**. `algo[0]` = A1 … `algo[3]` = A4. Permet de boucler sur les algos avec un indice `k`.
 
 ```c
-    printf("N;chiffres;premier;T_A1;T_A2;T_A3;T_A4;T_A5;T_A6\n");
+    printf("N;chiffres;premier;T_A1;T_A2;T_A3;T_A4\n");
 ```
-**En-tête du CSV** (séparateur `;`, ce que lit Excel en version française). Les lignes suivantes auront exactement ces 9 colonnes.
+**En-tête du CSV** (séparateur `;`, ce que lit Excel en version française). Les lignes suivantes auront exactement ces 7 colonnes.
 
 ```c
     ll n;
@@ -226,14 +216,14 @@ Si l'utilisateur n'a pas donné de fichier → message + sortie avec code 1 (err
 - Renvoie le **nombre de valeurs lues avec succès** : 1 tant qu'il y a un nombre ; 0 ou `EOF` à la fin → la boucle s'arrête. Les espaces/retours à la ligne sont ignorés automatiquement.
 
 ```c
-        printf("%lld;%d;%d", n, nbChiffres(n), A5(n));
+        printf("%lld;%d;%d", n, nbChiffres(n), n <= LIMITE_LINEAIRE ? A4(n) : -1);
 ```
-Écrit le début de ligne : `N`, nombre de chiffres, et si `n` est premier (via A5, rapide). `%d` = `int`. Pas de `\n` : la ligne continue.
+Écrit le début de ligne : `N`, nombre de chiffres, et si `n` est premier (via A4 ; `-1` si n > LIMITE_LINEAIRE). `%d` = `int`. Pas de `\n` : la ligne continue.
 
 ```c
-        for (int k = 0; k < 6; k++) {
+        for (int k = 0; k < 4; k++) {
             double t = -1;                       /* -1 = non mesuré */
-            if (k >= 4 || n <= LIMITE_LINEAIRE)  /* A5 et A6 toujours mesurés */
+            if (n <= LIMITE_LINEAIRE)  /* O(n) : trop lent au-dela */
                 t = mesurer(algo[k], n);
             printf(";%.9f", t);
         }
@@ -241,8 +231,8 @@ Si l'utilisateur n'a pas donné de fichier → message + sortie avec code 1 (err
         fflush(stdout);
     }
 ```
-- `for (init; condition; pas)` : boucle compteur. Ici `k` = 0..5.
-- Condition : `k >= 4` (A5, A6 → indices 4 et 5) **OU** `||` n ≤ 10⁹ → on mesure. Sinon `t` reste `-1`.
+- `for (init; condition; pas)` : boucle compteur. Ici `k` = 0..3.
+- Condition : `n <= LIMITE_LINEAIRE` → on mesure. Sinon `t` reste `-1`.
 - `%.9f` = réel avec 9 décimales (précision à la nanoseconde).
 - `fflush(stdout)` : vide le tampon de sortie. `stdout` est normalement *bufferisé* (le texte est gardé en mémoire puis écrit par paquets). `fflush` force l'écriture **ligne par ligne** : si tu interromps le programme (très long), tu gardes déjà les lignes faites dans le CSV.
 
@@ -259,10 +249,10 @@ Ferme le fichier (libère la ressource) puis termine avec succès.
 
 1. **Préprocesseur** : traite `#include`, `#define` (copier-coller textuel).
 2. **Compilateur** : traduit le C en code objet (langage machine, `.o`).
-3. **Éditeur de liens (linker)** : relie ton code aux fonctions de la bibliothèque standard (`printf`, `sqrt`…) → fichier exécutable `tp1.exe`.
+3. **Éditeur de liens (linker)** : relie ton code aux fonctions de la bibliothèque standard (`printf`…) → fichier exécutable `tp1.exe`.
 4. **Exécution** : l'OS charge `tp1.exe`, appelle `main(argc, argv)`.
 
-Commande type : `gcc tp1.c -o tp1.exe -lm` (ajouter `-O2` pour optimiser : là `volatile` devient crucial).
+Commande type : `gcc tp1.c -o tp1.exe` (ajouter `-O2` pour optimiser : là `volatile` devient crucial).
 
 **Redirection `>`** (du shell, pas du C) : `tp1.exe Test-3.txt > resultats_Test-3.csv` envoie tout ce que `printf` écrit (`stdout`) dans un fichier au lieu de l'écran. C'est pour ça que `main` n'affiche **que** le CSV (les messages d'erreur d'usage iraient aussi dans le fichier — détail à connaître).
 
@@ -283,7 +273,7 @@ Commande type : `gcc tp1.c -o tp1.exe -lm` (ajouter `-O2` pour optimiser : là `
 | Fonctions | `type nom(params){…return…}` | passage **par valeur** |
 | Pointeur / adresse | `*p`, `&x` | `&x` = où est `x` ; `*p` = ce qu'il y a à cette adresse |
 | Pointeur de fonction | `int (*f)(ll)` | fonction passée en paramètre |
-| Tableau | `int (*algo[6])(ll)`, `argv[]` | indices à partir de 0 |
+| Tableau | `int (*algo[4])(ll)`, `argv[]` | indices à partir de 0 |
 | Chaînes | `char *`, `%s` | terminées par `\0` |
 | Entrées/sorties | `printf`, `fscanf`, `fopen`, `fclose`, `fflush` | formats : `%d %lld %f %.9f %s` |
 | Arguments de main | `argc`, `argv` | ligne de commande |
@@ -297,11 +287,11 @@ Commande type : `gcc tp1.c -o tp1.exe -lm` (ajouter `-O2` pour optimiser : là `
 ## 9. Points d'attention pour TOI (le testeur)
 
 1. **Structure du projet** : le code est dans `code/tp1.c`, les données dans `data/`, les CSV dans `tests/resultats/`, les graphiques dans `tests/graphes/`. Toutes les commandes ci-dessous se lancent **depuis le dossier `TP1_Primalite`**.
-   *(A5 et A6, qui manquaient dans l'ancienne version de `tp1.c`, ont été ajoutées depuis `lyna.md` : le fichier compile maintenant.)*
 2. `stdlib.h` inutile ; `volatile` est en commentaire sur `i` (A1) — pas un bug.
 3. Pour le CSV : `-1` = non mesuré (n > 10⁹ pour A1–A4). Dans Excel/Python, **filtrer ces -1** avant de tracer (et ne pas les prendre pour un vrai temps).
-4. Commandes de compilation et de test : voir la section 10 ci-dessous.5. Les données (voir `lyna.md`) : `Random100/1000` (premiers aléatoires), `Test-1` (100 premiers entre 10³ et 10⁶), `Test-2` (10 premiers par nombre de chiffres de 3 à 12... ), `Test-3` (10 à 3, 6, 9 et 12 chiffres). Elles ne contiennent que des **premiers** = pire cas des algorithmes.
-6. Graphiques utiles : temps moyen par nombre de chiffres (échelle **log**), un courbe par algo ; rapport A1/A5 ; vérifier que la théorie tient (O(n) vs O(√n) : ×10 sur n → ×10 sur A1 mais ×≈3,16 sur A5).
+4. Commandes de compilation et de test : voir la section 10 ci-dessous.
+5. Les données (voir `lyna.md`) : `Random100/1000` (premiers aléatoires), `Test-1` (100 premiers entre 10³ et 10⁶), `Test-2` (10 premiers par nombre de chiffres de 3 à 12... ), `Test-3` (10 à 3, 6, 9 et 12 chiffres). Elles ne contiennent que des **premiers** = pire cas des algorithmes.
+6. Graphiques utiles : temps moyen par nombre de chiffres (échelle **log**), un courbe par algo .
 7. Quand tu relances plusieurs fois, les temps varient légèrement : fermer les autres programmes, même machine pour tous les tests, et le préciser dans le rapport (CPU, OS, compilateur, options `-O`).
 
 

@@ -1,4 +1,6 @@
-# Branches :
+# SVP GURLS , celle qui ecrit les code karha she adds comments fih bech nfehmoh , m les scripts generateur de donnees et mm le sscript des tets comme ca on a quoi lire devant la prof ki tse9si , THANK YOU 
+
+## Branches :
 ## code :
 - celui qui travaille sur le code va utiliser cete branche , apres chaque algorithme il push les modifcations sur github
 - - on doit tjr avoir pour chaque tp un markdown explicatif du code , nomee tjr selon le Tp concerne , exemple : tp1_explication_code.md
@@ -11,8 +13,10 @@
 - ici on a les fichiers csv apres execution du code , on la le script graphiques.py tjr pour generer les graphes , et on a les graphes dans leurs propre folder , l analyse des tets et les conclusion sont mis dans un fichier md dan le folder /tests , separees des fichiers md du folder docs 
 
 ### Personal Folders :
-- `docs` : ou on peut creer chacune son propre fichier markdown pour quelque notes a ecrire ou comprendre 
+- `docs` : 
+_ou on peut creer chacune son propre fichier markdown pour quelque notes a ecrire ou comprendre 
+_un rappel du language C a ete ajoute
 - `report` : folder qui contient un fichier markdown pour les jotes qui concerne le rapport , juste des notes pas necessairement le rapport lui meme 
-- `venv ` : c 
+
 
 

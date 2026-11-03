@@ -1,8 +1,8 @@
 /* =====================================================================
- * TP1 - Primalite : comparaison de 6 algorithmes (A1..A6)
+ * TP1 - Primalite : comparaison de 4 algorithmes (A1..A4)
  * Usage : tp1.exe fichier.txt > resultats.csv
  * Le programme lit des entiers dans fichier.txt, et affiche sur la sortie
- * standard un CSV : N;chiffres;premier;T_A1;...;T_A6 (temps moyens en s).
+ * standard un CSV : N;chiffres;premier;T_A1;...;T_A4 (temps moyens en s).
  * ===================================================================== */
 
 // #include = directive du PREPROCESSEUR : avant la compilation, la ligne est remplacee
@@ -12,7 +12,6 @@
 #include <stdio.h>   // standard input/output : printf, fopen, fscanf, fclose, fflush, type FILE, stdout
 #include <stdlib.h>  // utilitaires generaux (malloc, exit, atoi...) : pas utilise ici, inclus par habitude
 #include <time.h>    // clock(), type clock_t, constante CLOCKS_PER_SEC : pour mesurer le temps
-#include <math.h>    // sqrt() : utilise dans A5 et A6 (avec gcc sous Linux, compiler avec -lm)
 
 // typedef = donne un ALIAS (surnom) a un type existant : "ll" signifie desormais "long long".
 // long long = entier sur 64 bits (jusqu'a ~9,2e18). int (32 bits, max ~2,1e9) est trop petit
@@ -26,7 +25,7 @@ typedef long long ll;
 // #define NOM valeur : MACRO du preprocesseur = remplacement purement textuel de NOM par valeur
 // avant la compilation. Ce n'est pas une variable (pas de type, pas de memoire, pas de ";").
 // Le suffixe LL force la constante a etre un long long.
-#define LIMITE_LINEAIRE 1000000000LL
+#define LIMITE_LINEAIRE 2100000000LL
 
 /* ---------- Algorithme A1 : i de 2 a n-1 ---------- */
 // Convention : chaque algo renvoie 1 si n est premier, 0 sinon (en C : 0 = faux, autre = vrai).
@@ -103,48 +102,12 @@ int A4(ll n) {
     return premier;
 }
 
-/* ---------- Algorithme A5 : i de 2 a sqrt(n) ---------- */
-// (copie de lyna.md : cette fonction manquait dans le fichier alors que main l'utilise)
-// Si n = a*b, l'un des facteurs est <= racine(n) : inutile de tester au-dela. Complexite O(racine(n)).
-int A5(ll n) {
-    int premier = 1;
-    ll i = 2;
-    // sqrt travaille sur des double (reels) : cast (double) avant, cast (ll) apres (troncature).
-    // Calcule une seule fois, hors de la boucle (sinon on le recalculerait a chaque tour).
-    ll r = (ll) sqrt((double) n);   /* calcule une seule fois, hors de la boucle */
-    while (i <= r && premier == 1) {
-        if (n % i == 0) premier = 0;
-        else i = i + 1;
-    }
-    return premier;
-}
-
-/* ---------- Algorithme A6 : n pair elimine, puis i impair de 3 a sqrt(n) ---------- */
-// A5 + elimination des pairs : le plus rapide des six.
-int A6(ll n) {
-    int premier;
-    ll i;
-    if (n != 2) {
-        if (n % 2 == 0) premier = 0;
-        else {
-            premier = 1;
-            i = 3;
-            ll r = (ll) sqrt((double) n);
-            while (i <= r && premier == 1) {
-                if (n % i == 0) premier = 0;
-                else i = i + 2;
-            }
-        }
-    } else premier = 1;
-    return premier;
-}
-
 /* Repete l'appel jusqu'a 0.05 s au total, puis renvoie le temps moyen (en s) */
 // Pourquoi repeter : clock() a une resolution d'environ 1 ms. Un seul appel d'un algo rapide dure
 // quelques nanosecondes : impossible a mesurer. On repete donc l'appel et on divise par le nombre de tours.
 // int (*f)(ll) = POINTEUR DE FONCTION : f contient l'adresse d'une fonction qui prend un ll et
 // renvoie un int. Les parentheses autour de *f sont obligatoires. Cela permet d'utiliser la meme
-// fonction mesurer pour A1..A6 : mesurer(A3, n) (le nom d'une fonction = son adresse).
+// fonction mesurer pour A1..A4 : mesurer(A3, n) (le nom d'une fonction = son adresse).
 double mesurer(int (*f)(ll), ll n) {
     // volatile : le compilateur ne peut pas supprimer l'appel f(n) sous pretexte que res est inutilise
     volatile int res = 0;
@@ -186,23 +149,23 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Tableau de 6 pointeurs de fonctions : algo[0]=A1 ... algo[5]=A6. Permet de boucler sur les algos.
-    int (*algo[6])(ll) = {A1, A2, A3, A4, A5, A6};
+    // Tableau de 4 pointeurs de fonctions : algo[0]=A1 ... algo[3]=A4. Permet de boucler sur les algos.
+    int (*algo[4])(ll) = {A1, A2, A3, A4};
 
     // En-tete du CSV (separateur ';' : format lu par Excel en version francaise)
-    printf("N;chiffres;premier;T_A1;T_A2;T_A3;T_A4;T_A5;T_A6\n");
+    printf("N;chiffres;premier;T_A1;T_A2;T_A3;T_A4\n");
 
     ll n;
     // fscanf lit dans le fichier selon un format (%lld = long long) et renvoie le nombre de valeurs lues.
     // &n = ADRESSE de n : fscanf doit pouvoir modifier n. A la fin du fichier elle ne renvoie plus 1 : la boucle s'arrete.
     while (fscanf(f, "%lld", &n) == 1) {
-        // debut de ligne : N, nombre de chiffres, est-il premier (A5 : rapide et fiable). %d = int
-        printf("%lld;%d;%d", n, nbChiffres(n), A5(n));
-        // for (init; condition; pas) : k parcourt 0..5, soit les 6 algorithmes
-        for (int k = 0; k < 6; k++) {
+        // debut de ligne : N, nombre de chiffres, est-il premier (A4 ; -1 si n > LIMITE_LINEAIRE : trop lent). %d = int
+        printf("%lld;%d;%d", n, nbChiffres(n), n <= LIMITE_LINEAIRE ? A4(n) : -1);
+        // for (init; condition; pas) : k parcourt 0..3, soit les 4 algorithmes
+        for (int k = 0; k < 4; k++) {
             double t = -1;                          /* -1 = non mesure */
-            if (k >= 4 || n <= LIMITE_LINEAIRE)     /* A5 et A6 : toujours mesures */
-                t = mesurer(algo[k], n);            // || = OU logique ; algo[k] = k-ieme algorithme
+            if (n <= LIMITE_LINEAIRE)               /* O(n) : trop lent au-dela */
+                t = mesurer(algo[k], n);            // algo[k] = k-ieme algorithme
             printf(";%.9f", t);                     // %.9f = reel avec 9 decimales (precision a la nanoseconde)
         }
         printf("\n");

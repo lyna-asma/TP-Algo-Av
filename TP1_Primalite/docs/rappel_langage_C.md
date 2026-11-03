@@ -71,7 +71,7 @@ continue;   // passe à l'itération suivante
 ## 5. Fonctions
 
 - Passage **par valeur** : la fonction reçoit une copie. Pour modifier l'original, on passe un **pointeur** : `void f(int *p) { *p = 5; }` appelé par `f(&x);`.
-- Une fonction doit être **déclarée avant** son utilisation (ou avoir un prototype : `int A5(ll n);`).
+- Une fonction doit être **déclarée avant** son utilisation (ou avoir un prototype : `int A4(ll n);`).
 - `void` = pas de valeur de retour.
 
 ## 6. Pointeurs, tableaux, chaînes
@@ -119,7 +119,7 @@ char s[] = "abc";   // 'a','b','c','\0'
 ## 10. Chaîne de compilation
 
 ```
-tp1.c --préprocesseur--> --compilateur--> tp1.o --linker (+ libs: printf, sqrt...)--> tp1.exe
+tp1.c --préprocesseur--> --compilateur--> tp1.o --linker (+ libs: printf, clock...)--> tp1.exe
 ```
 
 ## 11. Commandes de manipulation des fichiers C
@@ -128,7 +128,6 @@ tp1.c --préprocesseur--> --compilateur--> tp1.o --linker (+ libs: printf, sqrt.
 ```
 gcc --version                              vérifier que gcc est installé
 gcc tp1.c -o tp1.exe                       compiler
-gcc tp1.c -o tp1.exe -lm                   lier la lib maths (sqrt) – nécessaire sous Linux
 gcc -Wall -Wextra tp1.c -o tp1.exe         activer les avertissements (toujours le faire)
 gcc -O2 tp1.c -o tp1.exe                   optimiser (-O0 aucune, -O2 courant, -O3 agressif)
 gcc -g tp1.c -o tp1.exe                    infos de débogage (pour gdb)
@@ -146,7 +145,6 @@ La commande ordinaire suffit : `gcc tp1.c -o tp1.exe`. Les options sont facultat
 | `-o tp1.exe` | nom du fichier produit (sans lui : `a.exe`) | non, mais pratique |
 | `-Wall` | affiche tous les avertissements | non, mais conseillé |
 | `-O2` | optimise le code (programme plus rapide) | non |
-| `-lm` | lie la bibliothèque maths (`sqrt`) | non sous Windows, oui sous Linux |
 
 > **Pour le TP :** `-O2` change les temps mesurés. Toute l'équipe doit compiler avec **les mêmes options** (ex. `gcc -O2 tp1.c -o tp1.exe`), sinon les temps ne sont pas comparables ; à indiquer dans le rapport. Sans `-O2`, les temps sont plus lents mais la comparaison entre algorithmes reste valable.
 > Attention : `^C` affiché dans un terminal = Ctrl + C (interruption), ce n'est pas une partie de la commande.
@@ -198,7 +196,7 @@ foreach ($f in 'Random100','Random1000','Test-1','Test-2','Test-3') {
 ### Automatiser avec un Makefile (si `make` est installé)
 ```make
 tp1.exe: tp1.c
-	gcc -O2 -Wall tp1.c -o tp1.exe -lm
+	gcc -O2 -Wall tp1.c -o tp1.exe
 clean:
 	del tp1.exe
 ```
@@ -248,8 +246,7 @@ deactivate                           # quitte l'environnement
 - Erreurs fréquentes :
   | Message | Cause |
   |---|---|
-  | `undefined reference to 'A5'` | fonction utilisée mais non définie / fichier non lié |
-  | `undefined reference to 'sqrt'` | oublier `-lm` |
+  | `undefined reference to 'A4'` | fonction utilisée mais non définie / fichier non lié |
   | `implicit declaration of function` | oubli de `#include` ou fonction déclarée après usage |
   | `Segmentation fault` | pointeur NULL / hors tableau / `scanf` sans `&` |
   | `'gcc' is not recognized` | gcc absent du `PATH` |

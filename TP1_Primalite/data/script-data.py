@@ -78,10 +78,17 @@ if __name__ == "__main__":
     for k in (3, 6, 9, 12):
         test3 += k_digit_primes(k, 10)
 
-    assert all(is_prime(p) for p in random100 + random1000 + test1 + test2 + test3)
+    # Echantillon de l'enonce du TP1 (tableau de 12 nombres premiers ou N double a chaque etape)
+    test_tp1 = [
+        1000003, 2000003, 4000037, 8000009, 16000057, 32000011,
+        64000031, 128000003, 256000001, 512000009, 1024000009, 2048000011
+    ]
+
+    assert all(is_prime(p) for p in random100 + random1000 + test1 + test2 + test3 + test_tp1)
 
     save("Random100", random100)
     save("Random1000", random1000)
     save("Test-1", test1)
     save("Test-2", test2)
     save("Test-3", test3)
+    save("Test-TP1", test_tp1)
