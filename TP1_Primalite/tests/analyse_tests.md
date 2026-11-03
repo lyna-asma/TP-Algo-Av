@@ -1,30 +1,60 @@
-# TP1 – Analyse des Tests, Résultats Excel et Interprétation des Graphes
+# TP1 – Résumé Complet pour la Validation (Données, Code, Tests, Excel et Graphes)
 
-> Ce document regroupe tout ce qu'il faut savoir pour présenter et expliquer la **partie Tests** du TP1 devant la professeure :
-> 1. Les jeux de données testés (lien entre TP0 et TP1)
-> 2. Les résultats Excel (`MIN`, `MAX`, `MOYENNE`, `SOMME`) et réponses aux questions du TP1
-> 3. Comment lire et interpréter les 6 graphes (`tests/graphes/*.png`)
-> 4. Explication simple du script [`graphiques.py`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphiques.py)
+> **Lis ce document de haut en bas : il t'explique 100 % du TP en français simple, étape par étape, avec les réponses exactes à donner à la professeure.**
 
 ---
 
-## 1. Les 4 algorithmes testés (Rappel rapide)
+## 1. Comprendre tout le TP en 2 minutes (La vue d'ensemble)
 
-Tous les nombres testés dans nos fichiers sont des **nombres premiers**, ce qui correspond au **pire cas** (la boucle va jusqu'au bout sans trouver de diviseur) :
+Imagine que le TP est une chaîne en **3 étapes** :
 
-| Algorithme | Principe (diviseurs testés) | Nombre d'itérations au pire cas ($N$ premier) | Complexité théorique | Gain théorique par rapport à `A1` |
-|---|---|---:|:---:|---|
-| **`A1`** | Teste tous les entiers $i$ de $2$ à $N-1$ (pas de 1) | $N - 2 \approx N$ | $O(N)$ | Référence ($1\times$) |
-| **`A2`** | Teste tous les entiers $i$ de $2$ à $N/2$ (pas de 1) | $N/2 - 1 \approx N/2$ | $O(N)$ | **$2\times$ plus rapide** que `A1` |
-| **`A3`** | Élimine les pairs, puis teste les impairs $i$ de $3$ à $N-2$ (pas de 2) | $(N - 3)/2 \approx N/2$ | $O(N)$ | **$2\times$ plus rapide** que `A1` (identique à `A2`) |
-| **`A4`** | Élimine les pairs, puis teste les impairs $i$ de $3$ à $N/2$ (pas de 2) | $\approx N/4$ | $O(N)$ | **$4\times$ plus rapide** que `A1` (**le meilleur**) |
+1. **Étape 1 : Les Données (`data/`)**
+   - Un script Python ([`script-data.py`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/data/script-data.py)) a généré des fichiers `.txt` remplis uniquement de **nombres premiers** (ex : `103`, `1000003`, `2048000011`...).
+   - **Pourquoi uniquement des nombres premiers ?** Parce que pour vérifier qu'un nombre est premier, un algorithme cherche un diviseur. S'il n'en trouve aucun (cas d'un nombre premier), il est obligé de faire **tous les tours de boucle jusqu'à la fin**. C'est ce qu'on appelle tester le **pire cas**.
+
+2. **Étape 2 : Le Code C (`code/tp1.c` et `tp1.exe`)**
+   - Le programme C prend un fichier `.txt` de nombres premiers, et pour chaque nombre $N$, il chronomètre les **4 algorithmes** (`A1`, `A2`, `A3`, `A4`) en secondes :
+     - **`A1`** : teste tous les diviseurs $i$ de $2$ jusqu'à $N-1$ (1 par 1) $\rightarrow$ fait **$N$ tours**.
+     - **`A2`** : teste tous les diviseurs $i$ de $2$ jusqu'à $N/2$ (1 par 1) $\rightarrow$ fait **$N/2$ tours** (**2 fois plus rapide que `A1`**).
+     - **`A3`** : élimine les nombres pairs, puis teste seulement les diviseurs impairs $3, 5, 7\dots$ jusqu'à $N-2$ (de 2 en 2) $\rightarrow$ fait **$N/2$ tours** (**2 fois plus rapide que `A1`, même vitesse que `A2`**).
+     - **`A4`** : élimine les nombres pairs, puis teste seulement les diviseurs impairs $3, 5, 7\dots$ jusqu'à $N/2$ (de 2 en 2) $\rightarrow$ fait **$N/4$ tours** (**4 fois plus rapide que `A1`, c'est le meilleur !**).
+
+3. **Étape 3 : Ta partie — Les Tests, les fichiers Excel et les Graphes (`tests/`)**
+   - On a exécuté `tp1.exe` sur **les 6 fichiers de données** et rangé les résultats dans **`tests/resultats/*.xlsx`**.
+   - En bas de chaque fichier Excel `.xlsx`, il y a 4 lignes calculées par formules Excel pour chaque algorithme :
+     - **`MIN`** : le temps le plus court (sur le plus petit nombre du fichier),
+     - **`MAX`** : le temps le plus long (sur le plus grand nombre du fichier),
+     - **`MOYENNE`** : la moyenne des temps sur tous les nombres du fichier,
+     - **`SOMME`** : le temps total cumulé sur tout le fichier.
+   - Enfin, ton script [`tests/graphiques.py`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphiques.py) lit ces 6 fichiers Excel `.xlsx` et trace automatiquement tous les graphes dans **`tests/graphes/*.png`**.
 
 ---
 
-## 2. Partie A — Résultats et réponses sur l'échantillon imposé dans l'énoncé du TP1 (`Test-TP1.xlsx`)
+## 2. Quels sont les 6 cas (jeux de données) testés et pourquoi ?
 
-### Question 3.a & 3.b : Vérification de la primalité et tableau des temps d'exécution $T(N)$
-Les 12 nombres proposés dans le tableau de l'énoncé du TP1 ont tous été vérifiés premiers (`premier = 1`). Voici les temps mesurés dans [`Test-TP1.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-TP1.xlsx) :
+Si la prof te demande : *« Quelles données avez-vous utilisées pour vos tests ? »*, voici la réponse exacte :
+
+### A. L'échantillon de 12 valeurs de l'énoncé du TP1 (`Test-TP1.xlsx`)
+- Ce sont les **12 nombres premiers donnés dans le tableau du sujet TP1** :
+  `1000003`, `2000003`, `4000037`, `8000009`, `16000057`, `32000011`, `64000031`, `128000003`, `256000001`, `512000009`, `1024000009`, `2048000011`.
+- **Particularité** : chaque nombre est le **double** du précédent ($N_{k+1} \approx 2 \times N_k$).
+- **Ce qu'on observe** : à chaque fois que $N$ double, le temps mesuré $T(N)$ **double aussi** ! Cela prouve expérimentalement que la complexité des 4 algorithmes est **linéaire en $O(N)$**.
+
+### B. Les 5 jeux de données du TP0 (`Random100`, `Random1000`, `Test-1`, `Test-2`, `Test-3`)
+Le but du TP0 est de comparer des **tirages aléatoires non contrôlés** avec des **tirages contrôlés par taille (nombre de chiffres)** :
+1. **`Random100.xlsx`** : 100 nombres premiers tirés au hasard ($\le 10^6$).
+2. **`Random1000.xlsx`** : 1000 nombres premiers tirés au hasard ($\le 10^6$).
+3. **`Test-1.xlsx`** : 100 nombres premiers tirés au hasard dans l'intervalle $[1\,000, 1\,000\,000]$.
+   - *Remarque sur ces 3 premiers jeux* : comme il y a beaucoup plus de nombres premiers entre $100\,000$ et $1\,000\,000$ (6 chiffres) qu'entre $1$ et $10\,000$, un tirage au hasard sélectionne presque uniquement des nombres à 6 chiffres. Sur leurs graphes, tous les points sont tassés à droite !
+4. **`Test-2.xlsx`** : échantillon **contrôlé** contenant exactement **10 nombres premiers pour chaque taille de 3 à 12 chiffres** (100 nombres au total ; mesurés de 3 à 9 chiffres car au-delà de $2{,}1 \times 10^9$, un algorithme en $O(N)$ mettrait des heures).
+5. **`Test-3.xlsx`** : échantillon **structuré** de 40 nombres (10 à 3 chiffres, 10 à 6 chiffres, 10 à 9 chiffres, 10 à 12 chiffres).
+   - *Remarque sur `Test-2` et `Test-3`* : grâce au contrôle par nombre de chiffres, les points sont parfaitement espacés sur le graphe. On voit que chaque fois qu'on ajoute **1 chiffre** ($N \times 10$), le temps est **multiplié par 10**.
+
+---
+
+## 3. Tous les tableaux de résultats (`MIN`, `MAX`, `MOYENNE`, `SOMME`)
+
+### Tableau 1 : Les 12 valeurs de l'énoncé du TP1 ([`Test-TP1.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-TP1.xlsx))
 
 | $N$ | Chiffres | Premier | $T_{A1}$ (s) | $T_{A2}$ (s) | $T_{A3}$ (s) | $T_{A4}$ (s) |
 |---:|:---:|:---:|---:|---:|---:|---:|
@@ -45,54 +75,34 @@ Les 12 nombres proposés dans le tableau de l'énoncé du TP1 ont tous été vé
 | **MOYENNE** | — | — | **1,099632639** | **0,550851852** | **0,547770833** | **0,272995389** |
 | **SOMME** | — | — | **13,195591667** | **6,610222222** | **6,573250000** | **3,275944672** |
 
-### Question 3.c : Que remarque-t-on sur les données de l'échantillon et sur les mesures obtenues ?
-1. **Sur les données $N$** : Chaque nombre $N$ de l'échantillon est approximativement **le double** du nombre précédent ($N_{k+1} \approx 2 \times N_k$, par exemple $128\,000\,003 \rightarrow 256\,000\,001 \rightarrow 512\,000\,009$).
-2. **Sur les mesures de temps $T$** : D'une valeur à la suivante, le temps d'exécution $T$ **double également** ($T_{k+1} \approx 2 \times T_k$). Par exemple pour `A1` : $0{,}412\text{ s} \rightarrow 0{,}821\text{ s} \rightarrow 1{,}654\text{ s} \rightarrow 3{,}270\text{ s} \rightarrow 6{,}619\text{ s}$.
+### Tableau 2 : Résumé `MIN`, `MAX`, `MOYENNE`, `SOMME` des 5 jeux du TP0
 
-### Question 3.d : Comparer la complexité théorique et les mesures expérimentales. Sont-elles compatibles ?
-- **Oui, elles sont parfaitement compatibles.**
-- La complexité théorique au pire cas est **linéaire en $O(N)$** : le temps d'exécution théorique est de la forme $T(N) \approx c \times N$.
-- Par conséquent, si on multiplie $N$ par $2$, la théorie prédit que $T(2N) = 2\,T(N)$ (le temps double), ce qui est exactement ce que l'on observe expérimentalement.
-
-### Comparaison entre les 4 algorithmes (`A1`, `A2`, `A3`, `A4`) :
-- **`A1` vs `A2`** : `A2` est **2 fois plus rapide** que `A1` (temps moyen `0,55 s` contre `1,10 s`), car il s'arrête à $N/2$.
-- **`A2` vs `A3`** : `A3` a quasiment **la même performance** que `A2` (temps moyen `0,548 s` contre `0,551 s`). En effet, sur un nombre premier impair, tester uniquement les diviseurs impairs jusqu'à $N-2$ (pas de 2) demande $(N-3)/2 \approx N/2$ tours, soit autant de tours que `A2`.
-- **`A4` vs tous les autres** : **`A4` est le meilleur algorithme (le plus performant)**. En combinant l'arrêt à $N/2$ et le pas de 2 (impairs seulement), il ne fait que $N/4$ itérations et est **4 fois plus rapide que `A1`** (temps moyen `0,27 s` contre `1,10 s`).
+| Fichier Excel | Statistique | `T_A1` (s) | `T_A2` (s) | `T_A3` (s) | `T_A4` (s) |
+|---|---|---:|---:|---:|---:|
+| [`Random100.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Random100.xlsx) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000021160`<br>`0.003250000`<br>`0.001429318`<br>`0.142931808` | `0.000010815`<br>`0.001727273`<br>`0.000715686`<br>`0.071568627` | `0.000010711`<br>`0.001700000`<br>`0.000721126`<br>`0.072112645` | `0.000005270`<br>`0.000793651`<br>`0.000361426`<br>`0.036142630` |
+| [`Random1000.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Random1000.xlsx) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000000839`<br>`0.003642857`<br>`0.001585978`<br>`1.585977993` | `0.000000438`<br>`0.001645161`<br>`0.000787517`<br>`0.787517134` | `0.000000433`<br>`0.001785714`<br>`0.000789397`<br>`0.789396871` | `0.000000235`<br>`0.000852459`<br>`0.000397118`<br>`0.397117705` |
+| [`Test-1.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-1.xlsx) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000055804`<br>`0.003187500`<br>`0.001562969`<br>`0.156296899` | `0.000028653`<br>`0.001666667`<br>`0.000778929`<br>`0.077892943` | `0.000027949`<br>`0.001666667`<br>`0.000788660`<br>`0.078866002` | `0.000014331`<br>`0.000833333`<br>`0.000392721`<br>`0.039272125` |
+| [`Test-2.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-2.xlsx) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000000341`<br>`3.141000000`<br>`0.242007216`<br>`16.940505096` | `0.000000188`<br>`1.573000000`<br>`0.121536058`<br>`8.507524073` | `0.000000190`<br>`1.571000000`<br>`0.120991154`<br>`8.469380746` | `0.000000111`<br>`0.781000000`<br>`0.060414670`<br>`4.229026872` |
+| [`Test-3.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-3.xlsx) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000000359`<br>`2.831000000`<br>`0.577987888`<br>`17.339636645` | `0.000000192`<br>`1.412000000`<br>`0.287647543`<br>`8.629426301` | `0.000000193`<br>`1.434000000`<br>`0.289345739`<br>`8.680372168` | `0.000000118`<br>`0.702000000`<br>`0.144439852`<br>`4.333195566` |
 
 ---
 
-## 3. Partie B — Résultats sur les 5 jeux de données du TP0 (`Random100`, `Random1000`, `Test-1`, `Test-2`, `Test-3`)
+## 4. Liste complète des Graphes dans `tests/graphes/` (Ce que chacun montre)
 
-### Tableau récapitulatif des statistiques (`MIN`, `MAX`, `MOYENNE`, `SOMME`)
+Tous les graphes possibles demandés par la prof et tes camarades sont maintenant générés dans `TP1_Primalite/tests/graphes/` :
 
-| Fichier Excel | Description du jeu de données | Statistique | `T_A1` (s) | `T_A2` (s) | `T_A3` (s) | `T_A4` (s) |
-|---|---|---|---|---:|---:|---:|---:|
-| [`Random100.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Random100.xlsx) | 100 premiers aléatoires ($\le 10^6$) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000021160`<br>`0.003250000`<br>`0.001429318`<br>`0.142931808` | `0.000010815`<br>`0.001727273`<br>`0.000715686`<br>`0.071568627` | `0.000010711`<br>`0.001700000`<br>`0.000721126`<br>`0.072112645` | `0.000005270`<br>`0.000793651`<br>`0.000361426`<br>`0.036142630` |
-| [`Random1000.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Random1000.xlsx) | 1000 premiers aléatoires ($\le 10^6$) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000000839`<br>`0.003642857`<br>`0.001585978`<br>`1.585977993` | `0.000000438`<br>`0.001645161`<br>`0.000787517`<br>`0.787517134` | `0.000000433`<br>`0.001785714`<br>`0.000789397`<br>`0.789396871` | `0.000000235`<br>`0.000852459`<br>`0.000397118`<br>`0.397117705` |
-| [`Test-1.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-1.xlsx) | 100 premiers dans $[10^3, 10^6]$ | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000055804`<br>`0.003187500`<br>`0.001562969`<br>`0.156296899` | `0.000028653`<br>`0.001666667`<br>`0.000778929`<br>`0.077892943` | `0.000027949`<br>`0.001666667`<br>`0.000788660`<br>`0.078866002` | `0.000014331`<br>`0.000833333`<br>`0.000392721`<br>`0.039272125` |
-| [`Test-2.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-2.xlsx) | 10 premiers par taille de 3 à 12 chiffres (mesurés de 3 à 9 chiffres) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000000341`<br>`3.141000000`<br>`0.242007216`<br>`16.940505096` | `0.000000188`<br>`1.573000000`<br>`0.121536058`<br>`8.507524073` | `0.000000190`<br>`1.571000000`<br>`0.120991154`<br>`8.469380746` | `0.000000111`<br>`0.781000000`<br>`0.060414670`<br>`4.229026872` |
-| [`Test-3.xlsx`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/resultats/Test-3.xlsx) | 10 premiers à 3, 6, 9, 12 chiffres (mesurés à 3, 6, 9 chiffres) | **MIN**<br>**MAX**<br>**MOYENNE**<br>**SOMME** | `0.000000359`<br>`2.831000000`<br>`0.577987888`<br>`17.339636645` | `0.000000192`<br>`1.412000000`<br>`0.287647543`<br>`8.629426301` | `0.000000193`<br>`1.434000000`<br>`0.289345739`<br>`8.680372168` | `0.000000118`<br>`0.702000000`<br>`0.144439852`<br>`4.333195566` |
+### 1) Les graphes demandés question par question dans l'énoncé du TP1 :
+- **[`TP1_Q3e_A1_temps_et_complexite.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/TP1_Q3e_A1_temps_et_complexite.png)** *(Question 3.e)* :
+  - À gauche : la courbe du temps d'exécution $T(N)$ de `A1` en fonction de $N$ (c'est une droite parfaite).
+  - À droite : la courbe de la complexité théorique au pire cas $O(N) = N-2$ en fonction de $N$ (la même droite parfaite !).
+- **[`TP1_Comparaison_A1_A2.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/TP1_Comparaison_A1_A2.png)** *(Algorithme 2, Question 2)* :
+  - Compare `A1` et `A2` : la droite de `A2` monte 2 fois moins vite que celle de `A1`.
+- **[`TP1_Comparaison_A1_A2_A3.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/TP1_Comparaison_A1_A2_A3.png)** *(Algorithme 3, Question 2)* :
+  - Compare `A1`, `A2` et `A3` : les droites de `A2` et `A3` sont confondues (toutes deux à la moitié de `A1`).
+- **[`TP1_Comparaison_A1_A2_A3_A4.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/TP1_Comparaison_A1_A2_A3_A4.png)** *(Algorithme 4, Question 4)* :
+  - Compare les 4 algorithmes en échelle linéaire : on voit très clairement que `A4` (rouge) est tout en bas (4 fois plus rapide que `A1` et 2 fois plus rapide que `A2`/`A3`).
 
-### Conclusion sur l'impact du choix des données (Objectif du TP0) :
-1. **`Random100`, `Random1000` et `Test-1`** :
-   - Quand on tire des nombres premiers au hasard jusqu'à $10^6$, ~90 % des nombres tirés ont **6 chiffres** (entre $100\,000$ et $1\,000\,000$).
-   - Sur les graphes [`Random100.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/Random100.png), [`Random1000.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/Random1000.png) et [`Test-1.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/Test-1.png), on voit que les points sont très concentrés à droite près de $10^6$ et très rares sur les petits nombres. Un tirage purement aléatoire représente donc mal les différentes échelles de grandeur.
-2. **`Test-2` et `Test-3` (Échantillons contrôlés par nombre de chiffres)** :
-   - En imposant 10 nombres par nombre de chiffres (3, 4, 5, ..., 9 chiffres dans [`Test-2.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/Test-2.png), et 3, 6, 9 chiffres dans [`Test-3.png`](file:///c:/Users/lyna/Desktop/M1-Semestre1/TP-Algo-Av/TP1_Primalite/tests/graphes/Test-3.png)), les points sont **parfaitement répartis** sur tout l'axe horizontal.
-   - On voit très nettement que chaque fois que $N$ gagne 1 chiffre ($\times 10$), le temps $T(N)$ est multiplié par 10, et qu'au-delà de 9 chiffres ($N > 2{,}1 \times 10^9$), les algorithmes en $O(N)$ deviennent trop lents (plusieurs dizaines de secondes à plusieurs heures par nombre pour 12 chiffres).
-
----
-
-## 4. Comment expliquer les graphes (`tests/graphes/*.png`) devant la professeure
-
-Sur chacun des 6 graphes (`Test-TP1.png`, `Random100.png`, `Random1000.png`, `Test-1.png`, `Test-2.png`, `Test-3.png`) :
-- **Axe horizontal $X$ (abscisse)** : le nombre premier **$N$** testé.
-- **Axe vertical $Y$ (ordonnée)** : le **temps d'exécution $T(N)$ en secondes**.
-- **Pourquoi une échelle logarithmique (`log`) sur $X$ et $Y$ ?**
-  Parce que $N$ varie de $100$ ($10^2$) à $2\,048\,000\,011$ ($\approx 2 \times 10^9$), et le temps varie de $0{,}0000001\text{ s}$ ($10^{-7}\text{ s}$) à $6{,}6\text{ s}$. Sans échelle logarithmique, tous les nombres inférieurs à $10^7$ seraient écrasés à $0$ en bas à gauche du graphique.
-- **Ce qu'on voit sur les 4 courbes :**
-  1. Les 4 courbes forment des **droites parallèles de pente 1** en échelle log-log, ce qui confirme qu'elles ont toutes la même classe de complexité asymptotique linéaire **$O(N)$**.
-  2. La courbe **bleue (`A1`)** est tout en haut (la plus lente).
-  3. Les courbes **orange (`A2`)** et **verte (`A3`)** sont **confondues au milieu** : elles font toutes les deux $N/2$ divisions et prennent la moitié du temps de `A1`.
-  4. La courbe **rouge (`A4`)** est tout en bas : c'est la plus rapide (le quart du temps de `A1`).
-
+### 2) Les graphes pour chacun des jeux de données (`Random100`, `Random1000`, `Test-1`, `Test-2`, `Test-3`, `Test-TP1`) :
+- **`<Nom>_temps_vs_N.png`** : Axe $X = N$, Axe $Y = \text{Temps } T(N)$ des 4 algorithmes.
+- **`<Nom>_min_moy_max.png`** : Axe $X = \text{Algorithme (`A1`, `A2`, `A3`, `A4`)}$, Axe $Y = \text{Temps MIN, MOYEN et MAX}$. On voit que les 3 courbes (`MIN`, `MOYEN`, `MAX`) descendent de `A1` vers `A4`.
+- **`Test-2_par_chiffres.png` et `Test-3_par_chiffres.png`** : Axe $X = \text{Nombre de chiffres (3 à 9)}$, Axe $Y = \text{Temps moyen}$. Montre que le temps est multiplié par 10 à chaque chiffre supplémentaire.
