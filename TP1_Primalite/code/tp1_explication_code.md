@@ -20,10 +20,11 @@ génère data/*.txt       + fonction de mesure du temps    graphiques depuis le 
 |---|---|---|---|
 | A1 | 2 → n-1 | +1 | O(n) |
 | A2 | 2 → n/2 | +1 | O(n) (2× moins que A1) |
-| A3 | (pair éliminé) 3 → n-2 | +2 | O(n) (≈ 2× moins que A1) |
-| A4 | (pair éliminé) 3 → n/2 | +2 | O(n) (≈ 4× moins que A1) |
+| A3 | 2 → √n | +1 | O(√n) |
+| A4 | (pair éliminé) 3 → √n | +2 | O(√n) (≈ 2× moins que A3) |
 
 Pourquoi n/2 suffit : un diviseur de `n` plus grand que n/2 (autre que n) n'existe pas.
+Pourquoi √n suffit : si `n = a × b`, un des deux facteurs est ≤ √n. Donc si aucun diviseur ≤ √n → premier.
 Pourquoi éliminer les pairs : si `n` est pair (et ≠ 2) il n'est pas premier ; sinon aucun diviseur pair ne peut le diviser → on saute les `i` pairs (pas de 2).
 
 ---
@@ -34,6 +35,7 @@ Pourquoi éliminer les pairs : si `n` est pair (et ≠ 2) il n'est pas premier ;
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 ```
 
 `#include` est une **directive du préprocesseur** : *avant* la compilation, un programme appelé préprocesseur remplace la ligne par le **contenu du fichier d'en-tête** (`.h`). Un `.h` contient seulement des **déclarations** (« la fonction `printf` existe et ressemble à ça »). Le code réel est dans la bibliothèque standard, liée à la fin (édition de liens / *linking*). Les `< >` signifient « cherche dans les dossiers du compilateur » (avec `" "` on chercherait d'abord dans ton dossier).
@@ -43,6 +45,7 @@ Pourquoi éliminer les pairs : si `n` est pair (et ≠ 2) il n'est pas premier ;
 | `stdio.h` (**st**an**d**ard **i**nput/**o**utput) | entrées/sorties : `printf`, `fopen`, `fscanf`, `fclose`, `fflush`, type `FILE`, `stdout` | afficher le CSV, lire le fichier de nombres |
 | `stdlib.h` | utilitaires généraux (`malloc`, `atoi`, `exit`, `rand`…) | **pas vraiment utilisé** ici (inclus par habitude) |
 | `time.h` | `clock()`, type `clock_t`, constante `CLOCKS_PER_SEC` | mesurer le temps |
+| `math.h` | fonctions mathématiques : `sqrt()` | calculer $\sqrt{n}$ dans A3 et A4 |
 
 
 ---
@@ -106,28 +109,40 @@ int A1(ll n) {
 ### A2
 Identique, mais condition `i <= n / 2`. En C, `/` entre deux entiers = **division entière** (7/2 = 3), exactement le « div » du pseudo-code.
 
-### A3 – pairs éliminés
+### A3 – arrêt à √n
 ```c
 int A3(ll n) {
-    int premier;  ll i;
-    if (n != 2) {                    // 2 est le seul nombre pair premier
-        if (n % 2 == 0) premier = 0; // pair ≠ 2 → non premier immédiatement
-        else {
-            premier = 1;
-            i = 3;                   // on commence à 3
-            while (i <= n - 2 && premier == 1) {
-                if (n % i == 0) premier = 0;
-                else i = i + 2;      // pas de 2 : 3,5,7,9,... (impairs seulement)
-            }
-        }
-    } else premier = 1;              // n == 2
+    int premier = 1;
+    ll i = 2;
+    ll r = (ll) sqrt((double) n);
+    while (i <= r && premier == 1) {
+        if (n % i == 0) premier = 0;
+        else i = i + 1;
+    }
     return premier;
 }
 ```
-(Ici `premier` n'est pas initialisé à la déclaration mais est affecté dans **chaque** branche avant le `return` — c'est correct.)
 
-### A4
-Comme A3 avec `i <= n / 2`.
+### A4 – pairs éliminés + arrêt à √n
+```c
+int A4(ll n) {
+    int premier;
+    ll i;
+    if (n != 2) {
+        if (n % 2 == 0) premier = 0;
+        else {
+            premier = 1;
+            i = 3;
+            ll r = (ll) sqrt((double) n);
+            while (i <= r && premier == 1) {
+                if (n % i == 0) premier = 0;
+                else i = i + 2;
+            }
+        }
+    } else premier = 1;
+    return premier;
+}
+```
 
 
 ---

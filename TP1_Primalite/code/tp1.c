@@ -12,16 +12,17 @@
 #include <stdio.h>   // standard input/output : printf, fopen, fscanf, fclose, fflush, type FILE, stdout
 #include <stdlib.h>  // utilitaires generaux (malloc, exit, atoi...) : pas utilise ici, inclus par habitude
 #include <time.h>    // clock(), type clock_t, constante CLOCKS_PER_SEC : pour mesurer le temps
+#include <math.h>    // sqrt() : utilise dans A3 et A4 (avec gcc sous Linux, compiler avec -lm)
 
 // typedef = donne un ALIAS (surnom) a un type existant : "ll" signifie desormais "long long".
 // long long = entier sur 64 bits (jusqu'a ~9,2e18). int (32 bits, max ~2,1e9) est trop petit
 // pour nos nombres a 12 chiffres. Pour printf/scanf, le format d'un long long est %lld.
 typedef long long ll;
 
-/* Au-dela de cette valeur, les algorithmes en O(n) sont trop lents : on les saute */
+/* Au-dela de cette valeur, les algorithmes en O(n) (A1 et A2) sont trop lents : on les saute */
 // define est une constante de compilation, on peut la modifier avec -D LIMITE_LINEAIRE=... lors de la compilation
 // ll est un type entier long long, qui peut contenir des valeurs plus grandes que int ou long
-// cette constante est specialement utile pour les algorithmes A1, A2, A3 et A4, qui sont en O(n) et donc trop lents pour de grandes valeurs de n
+// cette constante est specialement utile pour les algorithmes A1 et A2, qui sont en O(n) et donc trop lents pour de grandes valeurs de n
 // #define NOM valeur : MACRO du preprocesseur = remplacement purement textuel de NOM par valeur
 // avant la compilation. Ce n'est pas une variable (pas de type, pas de memoire, pas de ";").
 // Le suffixe LL force la constante a etre un long long.
@@ -61,30 +62,21 @@ int A2(ll n) {
     return premier;
 }
 
-/* ---------- Algorithme A3 : n pair elimine, puis i impair de 3 a n-2 ---------- */
-//
-// Idee : un nombre pair (sauf 2) n'est pas premier ; et un nombre impair n'a que des diviseurs
-// impairs, donc on teste seulement 3, 5, 7, ... (pas de 2) : environ 2 fois moins de tours.
+/* ---------- Algorithme A3 : i de 2 a sqrt(n) ---------- */
+// Propriete : si n a un diviseur > 1, le plus petit est <= sqrt(n). Complexite O(sqrt(n)).
 int A3(ll n) {
-    int premier;
-    // ll 
-    ll i;
-    if (n != 2) {                       // != = different de. 2 est le seul nombre pair premier
-        if (n % 2 == 0) premier = 0;    // n pair et != 2 : non premier, sans aucune boucle
-        else {
-            premier = 1;                // n impair : on suppose premier
-            i = 3;                      // premier diviseur impair candidat
-            while (i <= n - 2 && premier == 1) {
-                if (n % i == 0) premier = 0;
-                else i = i + 2;         // pas de 2 : 3, 5, 7, 9, ... (impairs uniquement)
-            }
-        }
-    } else premier = 1;                 // n == 2 : premier
-    return premier;                     // (premier est affecte dans TOUTES les branches avant ce return)
+    int premier = 1;
+    ll i = 2;
+    ll r = (ll) sqrt((double) n);
+    while (i <= r && premier == 1) {
+        if (n % i == 0) premier = 0;
+        else i = i + 1;
+    }
+    return premier;
 }
 
-/* ---------- Algorithme A4 : n pair elimine, puis i impair de 3 a n div 2 ---------- */
-// A3 avec la borne n/2 au lieu de n-2 : cumule les deux optimisations (impairs + moitie).
+/* ---------- Algorithme A4 : n pair elimine, puis i impair de 3 a sqrt(n) ---------- */
+// A3 + elimination des nombres pairs (on ne teste que les diviseurs impairs, pas de 2). Complexite O(sqrt(n)).
 int A4(ll n) {
     int premier;
     ll i;
@@ -93,7 +85,8 @@ int A4(ll n) {
         else {
             premier = 1;
             i = 3;
-            while (i <= n / 2 && premier == 1) {
+            ll r = (ll) sqrt((double) n);
+            while (i <= r && premier == 1) {
                 if (n % i == 0) premier = 0;
                 else i = i + 2;
             }
@@ -159,13 +152,13 @@ int main(int argc, char *argv[]) {
     // fscanf lit dans le fichier selon un format (%lld = long long) et renvoie le nombre de valeurs lues.
     // &n = ADRESSE de n : fscanf doit pouvoir modifier n. A la fin du fichier elle ne renvoie plus 1 : la boucle s'arrete.
     while (fscanf(f, "%lld", &n) == 1) {
-        // debut de ligne : N, nombre de chiffres, est-il premier (A4 ; -1 si n > LIMITE_LINEAIRE : trop lent). %d = int
-        printf("%lld;%d;%d", n, nbChiffres(n), n <= LIMITE_LINEAIRE ? A4(n) : -1);
+        // debut de ligne : N, nombre de chiffres, est-il premier (A4 en O(sqrt(n)) : rapide et fiable). %d = int
+        printf("%lld;%d;%d", n, nbChiffres(n), A4(n));
         // for (init; condition; pas) : k parcourt 0..3, soit les 4 algorithmes
         for (int k = 0; k < 4; k++) {
             double t = -1;                          /* -1 = non mesure */
-            if (n <= LIMITE_LINEAIRE)               /* O(n) : trop lent au-dela */
-                t = mesurer(algo[k], n);            // algo[k] = k-ieme algorithme
+            if (k >= 2 || n <= LIMITE_LINEAIRE)     /* A3 et A4 (O(sqrt(n))) : toujours mesures */
+                t = mesurer(algo[k], n);            // || = OU logique ; algo[k] = k-ieme algorithme
             printf(";%.9f", t);                     // %.9f = reel avec 9 decimales (precision a la nanoseconde)
         }
         printf("\n");

@@ -43,10 +43,12 @@ def lire_xlsx(fichier):
     for row in racine.iter(ns_xml + "row"):
         # On extrait toutes les valeurs numeriques (<v>) presentes dans cette ligne et on les convertit en float
         vals = [float(v.text) for v in row.iter(ns_xml + "v")]
-        # Une ligne de mesure complete contient exactement 7 nombres : [N, chiffres, premier, T_A1, T_A2, T_A3, T_A4]
-        # Cela ignore automatiquement l'en-tete (0 nombre), les lignes "-" (3 nombres) et MIN/MAX/MOYENNE/SOMME (4 nombres)
+        # Cas 1 : les 4 algos sont mesures -> 7 nombres [N, chiffres, premier, T_A1, T_A2, T_A3, T_A4]
         if len(vals) == 7:
             lignes.append(vals)
+        # Cas 2 (grands nombres de 10 a 12 chiffres) : A1 et A2 sont "-" (non mesures), seuls A3 et A4 sont mesures -> 5 nombres
+        elif len(vals) == 5:
+            lignes.append([vals[0], vals[1], vals[2], -1.0, -1.0, vals[3], vals[4]])
     # On renvoie la liste des lignes de mesures
     return lignes
 
@@ -62,15 +64,14 @@ for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.xlsx"))):
     if not lignes:
         continue
 
-    # Axe horizontal X : les nombres premiers N (colonne 0)
-    valeurs_N = [l[0] for l in lignes]
-
     # --- 1.A : Graphe du temps T(N) en fonction de N (echelle log) ---
     plt.figure(figsize=(8, 5))
     for i, algo in enumerate(ALGOS):
-        # Colonne 3 = T_A1, 4 = T_A2, 5 = T_A3, 6 = T_A4
-        temps = [l[3 + i] for l in lignes]
-        plt.plot(valeurs_N, temps, marker="o", markersize=3, label=algo)
+        # On filtre les valeurs >= 0 (pour ignorer les -1 des algos A1/A2 au-dela de 9 chiffres)
+        pts = [(l[0], l[3 + i]) for l in lignes if l[3 + i] >= 0]
+        if pts:
+            xs, ys = zip(*pts)
+            plt.plot(xs, ys, marker="o", markersize=3, label=algo)
     plt.xscale("log")
     plt.yscale("log")
     plt.xlabel("Nombre premier N")
@@ -83,9 +84,12 @@ for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.xlsx"))):
     plt.close()
 
     # --- 1.B : Graphe comparatif MIN, MOYENNE et MAX de chaque algorithme ---
-    mins = [min(l[3 + i] for l in lignes) for i in range(4)]
-    moys = [sum(l[3 + i] for l in lignes) / len(lignes) for i in range(4)]
-    maxs = [max(l[3 + i] for l in lignes) for i in range(4)]
+    mins, moys, maxs = [], [], []
+    for i in range(4):
+        vals_algo = [l[3 + i] for l in lignes if l[3 + i] >= 0]
+        mins.append(min(vals_algo))
+        moys.append(sum(vals_algo) / len(vals_algo))
+        maxs.append(max(vals_algo))
 
     plt.figure(figsize=(8, 5))
     plt.plot(ALGOS, mins, marker="o", label="Temps MIN")
@@ -107,7 +111,8 @@ for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.xlsx"))):
         for l in lignes:
             nb_ch = int(l[1])  # Colonne 1 = nombre de chiffres
             for i, algo in enumerate(ALGOS):
-                par_chiffres[algo][nb_ch].append(l[3 + i])
+                if l[3 + i] >= 0:
+                    par_chiffres[algo][nb_ch].append(l[3 + i])
         plt.figure(figsize=(8, 5))
         for algo in ALGOS:
             tailles = sorted(par_chiffres[algo])
@@ -154,21 +159,24 @@ if os.path.exists(fichier_tp1):
     plt.savefig(os.path.join(GRAPHES, "TP1_Q3e_A1_temps_et_complexite.png"), dpi=150)
     plt.close()
 
-    # --- Algorithme 2 (Q.2), Algorithme 3 (Q.2), Algorithme 4 (Q.4) : Comparaisons progressives (echelle lineaire) ---
+    # --- Algorithme 2 (Q.2), Algorithme 3 (Q.2), Algorithme 4 (Q.4) : Comparaisons progressives ---
     groupes = [
-        (["A1", "A2"], "TP1_Comparaison_A1_A2.png", "Comparaison de A1 et A2 (echelle lineaire)"),
-        (["A1", "A2", "A3"], "TP1_Comparaison_A1_A2_A3.png", "Comparaison de A1, A2 et A3 (echelle lineaire)"),
-        (["A1", "A2", "A3", "A4"], "TP1_Comparaison_A1_A2_A3_A4.png", "Comparaison de A1, A2, A3 et A4 (echelle lineaire)"),
+        (["A1", "A2"], "TP1_Comparaison_A1_A2.png", "Comparaison de A1 et A2", False),
+        (["A1", "A2", "A3"], "TP1_Comparaison_A1_A2_A3.png", "Comparaison de A1, A2 et A3 (echelle log)", True),
+        (["A1", "A2", "A3", "A4"], "TP1_Comparaison_A1_A2_A3_A4.png", "Comparaison de A1, A2, A3 et A4 (echelle log)", True),
     ]
-    for sous_liste, nom_img, titre in groupes:
+    for sous_liste, nom_img, titre, use_log in groupes:
         plt.figure(figsize=(8, 5))
         for i, algo in enumerate(sous_liste):
             temps = [l[3 + i] for l in lignes_tp1]
             plt.plot(valeurs_N, temps, marker="o", label=algo)
+        if use_log:
+            plt.xscale("log")
+            plt.yscale("log")
         plt.xlabel("Nombre premier N")
         plt.ylabel("Temps d'execution T (en secondes)")
         plt.title(titre)
-        plt.grid(True, alpha=0.3)
+        plt.grid(True, which="both", alpha=0.3)
         plt.legend()
         plt.tight_layout()
         plt.savefig(os.path.join(DOSSIER_GRADUELLE, nom_img), dpi=150)
