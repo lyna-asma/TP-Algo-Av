@@ -19,12 +19,14 @@ DOSSIER = os.path.dirname(os.path.abspath(__file__))
 RESULTATS = os.path.join(DOSSIER, "resultats")
 # Chemin du sous-dossier 'tests/graphes/' ou seront enregistrees les images (.png)
 GRAPHES = os.path.join(DOSSIER, "graphes")
-# Cree le dossier 'tests/graphes/' s'il n'existe pas encore
-os.makedirs(GRAPHES, exist_ok=True)
+# Sous-dossiers organises par categorie de graphe
+DOSSIER_VS_N = os.path.join(GRAPHES, "comparaison-temps-vs-N(valeur-de-N)")
+DOSSIER_MIN_MOY_MAX = os.path.join(GRAPHES, "min-moy-max")
+DOSSIER_PAR_CHIFFRES = os.path.join(GRAPHES, "comparaison-par-chiffres(taille-de-N)")
+DOSSIER_GRADUELLE = os.path.join(GRAPHES, "comparaison-graduelle")
 
-# Nettoie automatiquement les anciennes images .png avant de generer les nouvelles
-for ancien_png in glob.glob(os.path.join(GRAPHES, "*.png")):
-    os.remove(ancien_png)
+for d in (GRAPHES, DOSSIER_VS_N, DOSSIER_MIN_MOY_MAX, DOSSIER_PAR_CHIFFRES, DOSSIER_GRADUELLE):
+    os.makedirs(d, exist_ok=True)
 
 
 def lire_xlsx(fichier):
@@ -77,7 +79,7 @@ for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.xlsx"))):
     plt.grid(True, which="both", alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(GRAPHES, f"{nom}_temps_vs_N.png"), dpi=150)
+    plt.savefig(os.path.join(DOSSIER_VS_N, f"{nom}_temps_vs_N.png"), dpi=150)
     plt.close()
 
     # --- 1.B : Graphe comparatif MIN, MOYENNE et MAX de chaque algorithme ---
@@ -96,7 +98,7 @@ for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.xlsx"))):
     plt.grid(True, which="both", alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(GRAPHES, f"{nom}_min_moy_max.png"), dpi=150)
+    plt.savefig(os.path.join(DOSSIER_MIN_MOY_MAX, f"{nom}_min_moy_max.png"), dpi=150)
     plt.close()
 
     # --- 1.C : Graphe du temps moyen par nombre de chiffres (pour Test-2 et Test-3) ---
@@ -118,7 +120,7 @@ for fichier in sorted(glob.glob(os.path.join(RESULTATS, "*.xlsx"))):
         plt.grid(True, which="both", alpha=0.3)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(GRAPHES, f"{nom}_par_chiffres.png"), dpi=150)
+        plt.savefig(os.path.join(DOSSIER_PAR_CHIFFRES, f"{nom}_par_chiffres.png"), dpi=150)
         plt.close()
 
 
@@ -169,7 +171,7 @@ if os.path.exists(fichier_tp1):
         plt.grid(True, alpha=0.3)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(GRAPHES, nom_img), dpi=150)
+        plt.savefig(os.path.join(DOSSIER_GRADUELLE, nom_img), dpi=150)
         plt.close()
 
 print("Tous les graphiques ont ete generes dans :", GRAPHES)
