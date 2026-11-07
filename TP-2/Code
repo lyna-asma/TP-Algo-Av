@@ -1,1 +1,213 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
+/*  PARTIE A : RECHERCHE */
+
+// A.1 : tableau non trié   
+
+int rechElets_TabNonTries(int T[], int n, int x)
+{
+    for (int i = 0; i < n; i++)  // boucle jusque a la fin du tableau ou jusqu'à trouver x
+        if (T[i] == x) return 1;
+    return 0;
+}
+
+// A.2 : tableau trié 
+int rechElets_TabTries(int T[], int n, int x)
+{
+    int i = 0;
+    while (i < n && T[i] < x) i++;
+    return (i < n && T[i] == x);
+}
+
+// A.2.2 : recherche dichotomique (tableau trié) 
+
+/*Chercher par dichotomie, c’est 
+chercher dans un tableau trié en éliminant la moitié des éléments à chaque étape. C’est  chercher x dans
+ un tableau : tu ouvres au milieu, tu vois si ton x est avant ou après, et tu ne regardes plus que cette moitié.*/
+int rechElets_Dicho(int T[], int n, int x)
+{
+    int g = 0, d = n - 1; //g=gauche d=droite 
+    while (g <= d) {
+        int m = (g + d) / 2; //calculer milieu 
+        if (T[m] == x) return 1;
+        if (x < T[m]) d = m - 1;
+        else          g = m + 1;
+    }
+    return 0;
+}
+
+/* PARTIE B  MAX ET MIN  */
+
+/* B.1 : approche naïve (2 comparaisons par élément) */
+// distinctes veut dire chaque valeur est unique 
+
+long MaxEtMinA(int T[], int n, int *max, int *min)
+{
+    long cpt = 0;
+    *max = T[0];
+    *min = T[0];
+    for (int i = 1; i < n; i++) {
+        cpt++; if (T[i] > *max) *max = T[i];
+        cpt++; if (T[i] < *min) *min = T[i];
+    }
+    return cpt;
+}
+
+// B.2  algo plus efficase 
+long MaxEtMinB(int T[], int n, int *max, int *min)
+{
+    long cpt = 0;
+    int i, tmp;
+    /* Phase i : grands en cases paires, petits en cases impaires */
+    for (i = 0; i + 1 < n; i += 2) {
+        cpt++;
+        if (T[i] < T[i + 1]) { tmp = T[i]; T[i] = T[i + 1]; T[i + 1] = tmp; }
+    }
+    /* Phase iii : maximum parmi les cases paires */
+    *max = T[0];
+    for (i = 2; i < n; i += 2) {
+        cpt++; if (T[i] > *max) *max = T[i];
+    }
+    /* Phase ii : minimum parmi les cases impaires */
+    *min = T[1];
+    for (i = 3; i < n; i += 2) {
+        cpt++; if (T[i] < *min) *min = T[i];
+    }
+    /* n impair : le dernier élément n'a pas été comparé pour le min */
+    if (n % 2 == 1) {
+        cpt++; if (T[n - 1] < *min) *min = T[n - 1];
+    }
+    return cpt;
+}
+
+/* ===================== OUTILS ===================== */
+
+/* rand() ne donne que 15 bits sous Windows : on combine deux appels (30 bits, toujours positif) */
+static int rand32(void) { return ((rand() & 0x7FFF) << 15) | (rand() & 0x7FFF); }
+
+/* Remplit T avec les valeurs distinctes 0..n-1 dans un ordre aléatoire */
+void remplirAleatoire(int T[], int n)
+{
+    for (int i = 0; i < n; i++) T[i] = i;
+    for (int i = n - 1; i > 0; i--) {
+        int j = rand32() % (i + 1);
+        int tmp = T[i]; T[i] = T[j]; T[j] = tmp;
+    }
+}
+
+/* Remplit T avec un tableau trié : 0, 2, 4, ... (les impairs sont absents) */
+void remplirTrie(int T[], int n)
+{
+    for (int i = 0; i < n; i++) T[i] = 2 * i;
+}
+
+typedef int (*FctRech)(int[], int, int);
+
+/* Temps moyen d'UNE recherche, en microsecondes (on répète "rep" fois) */
+double mesureRech(FctRech f, int T[], int n, int x, long rep)
+{
+    volatile int r = 0;
+    clock_t debut = clock();
+    for (long k = 0; k < rep; k++) r += f(T, n, x);
+    clock_t fin = clock();
+    return ((double)(fin - debut) / CLOCKS_PER_SEC) / rep * 1e6;
+}
+
+/* ===================== PROGRAMME PRINCIPAL ===================== */
+
+int main(void)
+{
+    int tailles[] = {100000, 200000, 400000, 600000, 800000,
+                     1000000, 1200000, 1400000, 1600000, 1800000};
+    int nbT = sizeof(tailles) / sizeof(tailles[0]);
+    const long REP_LONG  = 1000000;  /* pour les cas très rapides */
+    const long REP_COURT = 200;      /* pour les parcours complets */
+
+    srand((unsigned)time(NULL));
+
+    /* ---------- Partie A : temps de recherche (en microsecondes) ---------- */
+    printf("=== PARTIE A : temps d'une recherche (microsecondes) ===\n");
+    printf("%9s | %12s %12s | %12s %12s | %12s %12s\n", "n",
+           "NonTrie-meil", "NonTrie-pire", "Trie-meil", "Trie-pire",
+           "Dicho-meil", "Dicho-pire");
+
+    for (int k = 0; k < nbT; k++) {
+        int n = tailles[k];
+        int *Tnt = malloc(n * sizeof(int));   /* non trié */
+        int *Tt  = malloc(n * sizeof(int));   /* trié */
+        if (!Tnt || !Tt) { printf("Memoire insuffisante\n"); return 1; }
+
+        remplirAleatoire(Tnt, n);
+        remplirTrie(Tt, n);
+
+        /* non trié : meilleur = 1re case, pire = valeur absente */
+        double a1 = mesureRech(rechElets_TabNonTries, Tnt, n, Tnt[0], REP_LONG);
+        double a2 = mesureRech(rechElets_TabNonTries, Tnt, n, -1,     REP_COURT);
+
+        /* trié séquentiel : meilleur = 1re case, pire = absent et plus grand que tout */
+        double b1 = mesureRech(rechElets_TabTries, Tt, n, Tt[0],  REP_LONG);
+        double b2 = mesureRech(rechElets_TabTries, Tt, n, 2 * n + 1, REP_COURT);
+
+        /* dichotomie : meilleur = élément du milieu, pire = valeur absente */
+        double c1 = mesureRech(rechElets_Dicho, Tt, n, Tt[(n - 1) / 2], REP_LONG);
+        double c2 = mesureRech(rechElets_Dicho, Tt, n, 2 * n + 1,       REP_LONG);
+
+        printf("%9d | %12.6f %12.6f | %12.6f %12.6f | %12.6f %12.6f\n",
+               n, a1, a2, b1, b2, c1, c2);
+
+        free(Tnt);
+        free(Tt);
+    }
+
+    /* ---------- Partie B : MaxEtMinA vs MaxEtMinB ---------- */
+    printf("\n=== PARTIE B : MaxEtMinA vs MaxEtMinB ===\n");
+    printf("%9s | %12s %12s | %12s %12s | %s\n", "n",
+           "cpt A", "2(n-1)", "cpt B", "3n/2-2", "temps A / temps B (ms)");
+
+    const int REP_B = 100;
+    for (int k = 0; k < nbT; k++) {
+        int n = tailles[k];
+        int *T  = malloc(n * sizeof(int));
+        int *cp = malloc(n * sizeof(int));
+        if (!T || !cp) { printf("Memoire insuffisante\n"); return 1; }
+        remplirAleatoire(T, n);
+
+        int maxA, minA, maxB, minB;
+        long cptA, cptB;
+
+        /* Comptage des comparaisons (un seul appel) */
+        memcpy(cp, T, n * sizeof(int));
+        cptA = MaxEtMinA(cp, n, &maxA, &minA);
+        memcpy(cp, T, n * sizeof(int));
+        cptB = MaxEtMinB(cp, n, &maxB, &minB);
+
+        if (maxA != maxB || minA != minB)
+            printf("ERREUR : resultats differents pour n=%d\n", n);
+
+        /* Mesure du temps (la copie du tableau est incluse dans les deux) */
+        clock_t d = clock();
+        for (int r = 0; r < REP_B; r++) {
+            memcpy(cp, T, n * sizeof(int));
+            MaxEtMinA(cp, n, &maxA, &minA);
+        }
+        double tA = (double)(clock() - d) / CLOCKS_PER_SEC / REP_B * 1000.0;
+
+        d = clock();
+        for (int r = 0; r < REP_B; r++) {
+            memcpy(cp, T, n * sizeof(int));
+            MaxEtMinB(cp, n, &maxB, &minB);
+        }
+        double tB = (double)(clock() - d) / CLOCKS_PER_SEC / REP_B * 1000.0;
+
+        printf("%9d | %12ld %12d | %12ld %12d | %.4f / %.4f\n",
+               n, cptA, 2 * (n - 1), cptB, 3 * n / 2 - 2, tA, tB);
+
+        free(T);
+        free(cp);
+    }
+
+    return 0;
+}
