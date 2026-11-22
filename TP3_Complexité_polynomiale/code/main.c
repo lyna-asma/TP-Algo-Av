@@ -1,15 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#define CREER_DOSSIER(d) _mkdir(d)
+#else
+#include <sys/stat.h>
+#define CREER_DOSSIER(d) mkdir(d, 0777)
+#endif
+
 #include "code.c"
 
 /* =========================================================================
  * TP N°3 : PROGRAMME DE DÉMONSTRATION & MESURE DU TEMPS D'EXÉCUTION
- * Module : Algorithmique Avancée et Complexité - Master 1 RSD / IL
- * USTHB 2026/2027
  * ========================================================================= */
 
-// Affiche proprement une petite matrice 2D
+// Affiche proprement une petite matrice 2D dans la console
 void afficherMatrice(const char *nom, const int *M, int lignes, int colonnes)
 {
     printf("\n--- Matrice %s (%d x %d) ---\n", nom, lignes, colonnes);
@@ -23,8 +31,10 @@ void afficherMatrice(const char *nom, const int *M, int lignes, int colonnes)
 }
 
 // -------------------------------------------------------------------------
-// Charge une matrice binaire (.bin) depuis le dossier data
+// [COMMENTÉ] L'ancienne lecture binaire (.bin) n'est plus utilisée pour le TP.
+// Les données sont désormais lues directement en format texte (.txt).
 // -------------------------------------------------------------------------
+/*
 int *chargerMatriceBinaire(const char *nomFichier, int totalElements)
 {
     char chemins[3][256];
@@ -52,9 +62,11 @@ int *chargerMatriceBinaire(const char *nomFichier, int totalElements)
     }
     return M;
 }
+*/
 
 // -------------------------------------------------------------------------
-// Charge une matrice texte (.txt) depuis le dossier data
+// Charge une matrice texte (.txt) depuis le dossier data/
+// Gère automatiquement les chemins relatifs que l'on soit dans code/ ou à la racine.
 // -------------------------------------------------------------------------
 int *chargerMatriceTexte(const char *nomFichier, int totalElements)
 {
@@ -68,18 +80,19 @@ int *chargerMatriceTexte(const char *nomFichier, int totalElements)
         f = fopen(chemins[k], "r");
         if (f) break;
     }
-    if (!f) return NULL;
+    if (!f) {
+        return NULL; // Fichier non trouvé
+    }
 
     int *M = (int *)malloc((size_t)totalElements * sizeof(int));
     if (!M) {
         fclose(f);
         return NULL;
     }
+
     for (int i = 0; i < totalElements; i++) {
         if (fscanf(f, "%d", &M[i]) != 1) {
-            free(M);
-            fclose(f);
-            return NULL;
+            break;
         }
     }
     fclose(f);
@@ -87,15 +100,111 @@ int *chargerMatriceTexte(const char *nomFichier, int totalElements)
 }
 
 // -------------------------------------------------------------------------
-// PARTIE 1 : Démonstration sur petits exemples avec affichage complet
+// Helper pour ouvrir un fichier dans le dossier 'resultats/'
 // -------------------------------------------------------------------------
+FILE *ouvrirFichierResultat(const char *nomFichier, const char *mode)
+{
+    CREER_DOSSIER("../resultats");
+    CREER_DOSSIER("resultats");
+
+    char chemin[256];
+    snprintf(chemin, sizeof(chemin), "../resultats/%s", nomFichier);
+    FILE *f = fopen(chemin, mode);
+    if (!f) {
+        snprintf(chemin, sizeof(chemin), "resultats/%s", nomFichier);
+        f = fopen(chemin, mode);
+    }
+    return f;
+}
+
+// -------------------------------------------------------------------------
+// Sauvegarde détaillée du résultat de l'Exercice 1
+// -------------------------------------------------------------------------
+void sauvegarderResultatProduit(const char *nomFichierResultat, int n, double duree_ms, const int *C)
+{
+    FILE *f = ouvrirFichierResultat(nomFichierResultat, "w");
+    if (!f) return;
+
+    fprintf(f, "============================================================\n");
+    fprintf(f, "RESULTAT - EXERCICE 1 : PRODUIT MATRICIEL C = A x B\n");
+    fprintf(f, "============================================================\n\n");
+    fprintf(f, "Dimensions des matrices   : %d x %d\n", n, n);
+    fprintf(f, "Nombre d'operations O(n^3): %lld\n", (long long)n * n * n);
+    fprintf(f, "Temps d'execution CPU     : %.4f ms (%.6f secondes)\n\n", duree_ms, duree_ms / 1000.0);
+
+    fprintf(f, "--- Extrait Matrice Resultat C (%d x %d) ---\n", n, n);
+    int max_lignes = (n > 50) ? 20 : n;
+    int max_cols = (n > 50) ? 20 : n;
+
+    for (int i = 0; i < max_lignes; i++) {
+        for (int j = 0; j < max_cols; j++) {
+            fprintf(f, "%d ", C[i * n + j]);
+        }
+        fprintf(f, "\n");
+    }
+    if (n > 50) {
+        fprintf(f, "\n... [Extrait des 20 premieres lignes/colonnes sur %d affiche]\n", n);
+    }
+
+    fclose(f);
+}
+
+// -------------------------------------------------------------------------
+// Sauvegarde détaillée du résultat de l'Exercice 2
+// -------------------------------------------------------------------------
+void sauvegarderResultatRecherche(const char *nomFichierResultat,
+                                  const char *fichier_A, const char *fichier_B,
+                                  int n, int m, int n_prime, int m_prime,
+                                  int tr1, int pos_i1, int pos_j1, double duree1_ms,
+                                  int tr2, int pos_i2, int pos_j2, double duree2_ms)
+{
+    FILE *f = ouvrirFichierResultat(nomFichierResultat, "w");
+    if (!f) return;
+
+    fprintf(f, "============================================================\n");
+    fprintf(f, "RESULTAT- EXERCICE 2 : RECHERCHE DE SOUS-MATRICE B DANS A\n");
+    fprintf(f, "============================================================\n\n");
+    fprintf(f, "Fichier Matrice A (Source)      : %s (%d x %d)\n", fichier_A, n, m);
+    fprintf(f, "Fichier Sous-Matrice B (Motif)  : %s (%d x %d)\n\n", fichier_B, n_prime, m_prime);
+
+    fprintf(f, "1. SOUS-MATRICE NON TRIEE (sousMat1 - Approche Naive) :\n");
+    if (tr1) {
+        fprintf(f, "   -> Statut            : TROUVEE\n");
+        fprintf(f, "   -> Position (i, j)   : Ligne = %d, Colonne = %d\n", pos_i1, pos_j1);
+    } else {
+        fprintf(f, "   -> Statut            : NON TROUVEE\n");
+    }
+    fprintf(f, "   -> Temps d'execution : %.4f ms (%.6f s)\n\n", duree1_ms, duree1_ms / 1000.0);
+
+    fprintf(f, "2. SOUS-MATRICE AVEC LIGNES TRIEES (sousMat2 - Approche Optimisee) :\n");
+    if (tr2) {
+        fprintf(f, "   -> Statut            : TROUVEE\n");
+        fprintf(f, "   -> Position (i, j)   : Ligne = %d, Colonne = %d\n", pos_i2, pos_j2);
+    } else {
+        fprintf(f, "   -> Statut            : NON TROUVEE\n");
+    }
+    fprintf(f, "   -> Temps d'execution : %.4f ms (%.6f s)\n\n", duree2_ms, duree2_ms / 1000.0);
+
+    fprintf(f, "3. COMPARAISON ET ANALYSE :\n");
+    if (duree2_ms > 0.00001) {
+        fprintf(f, "   -> Gain de vitesse : sousMat2 est %.2f fois plus rapide que sousMat1 !\n", duree1_ms / duree2_ms);
+    }
+    fprintf(f, "   -> sousMat2 tire profit du tri des lignes pour eliminer des lignes en O(1)\n");
+    fprintf(f, "      et localiser la colonne de depart par dichotomie en O(log m).\n");
+
+    fclose(f);
+}
+
+// -------------------------------------------------------------------------
+// [COMMENTÉ PAR MARIA] Démonstration sur petits exemples
+// -------------------------------------------------------------------------
+/*
 void demo_petits_exemples(void)
 {
     printf("\n============================================================\n");
     printf("   1. DEMONSTRATION SUR PETITS EXEMPLES PEDAGOGIQUES\n");
     printf("============================================================\n");
 
-    // --- Exercice 1 : Produit 3x3 ---
     int A[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
     int B[3][3] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
     int C[3][3] = {0};
@@ -110,8 +219,8 @@ void demo_petits_exemples(void)
 
     afficherMatrice("C = A x B", (const int *)C, 3, 3);
     printf("-> [SUCCES] Produit calcule en %.4f ms (C[0][0] = 30)\n", duree_prod);
+    sauvegarderResultatProduit("demo_produit_3x3.txt", 3, duree_prod, (const int *)C);
 
-    // --- Exercice 2 : Sous-matrice Figure 1 du TP (10 x 13) ---
     int A_fig[10][13] = {
         { 2,  2,  2,  3,  5,  7,  8, 17, 24, 24, 54, 67,  76},
         { 3,  4,  4,  5,  6,  6,  6,  8, 11, 12, 33, 81,  85},
@@ -147,91 +256,212 @@ void demo_petits_exemples(void)
 
     printf("sousMat1 (Naive)     : Trouve = %d a (%d, %d) en %.4f ms\n", tr1, pos_i1, pos_j1, duree_sm1);
     printf("sousMat2 (Optimisee) : Trouve = %d a (%d, %d) en %.4f ms\n", tr2, pos_i2, pos_j2, duree_sm2);
+    sauvegarderResultatRecherche("demo_recherche_figure1.txt", 
+                                 "Matrice_Figure1", "SousMatrice_Figure1",
+                                 10, 13, 3, 3,
+                                 tr1, pos_i1, pos_j1, duree_sm1,
+                                 tr2, pos_i2, pos_j2, duree_sm2);
+}
+*/
+
+// -------------------------------------------------------------------------
+// EXERCICE 1 : Batterie de tests automatique sur TOUS les fichiers data/
+// Tailles : n = 100, 200, 400, 600, 800, 1000
+// -------------------------------------------------------------------------
+void tester_exercice_1_automatique(void)
+{
+    printf("\n========================================================================\n");
+    printf("   1. EXERCICE 1 : BATTERIE COMPLETE PRODUIT DE MATRICES C = A x B\n");
+    printf("   (Tailles n = 100 a 1000)\n");
+    printf("========================================================================\n");
+
+    // Toutes les tailles présentes dans le dossier data/
+    int tailles[] = {100, 200, 400, 600, 800, 1000};
+    int nb_tailles = sizeof(tailles) / sizeof(tailles[0]);
+
+    // Fichier CSV récapitulatif
+    FILE *csv = ouvrirFichierResultat("recapitulatif_exercice1_produit.csv", "w");
+    if (csv) {
+        fprintf(csv, "Taille_n,Operations_O_n3,Temps_ms,Temps_secondes\n");
+    }
+
+    printf("%-10s | %-16s | %-16s | %-12s\n", "Taille n", "Operations O(n^3)", "Temps CPU (ms)", "Temps (s)");
+    printf("------------------------------------------------------------------------\n");
+
+    for (int k = 0; k < nb_tailles; k++) {
+        int n = tailles[k];
+        char nom_A[64], nom_B[64], nom_res[64];
+        snprintf(nom_A, sizeof(nom_A), "A_%d.txt", n);
+        snprintf(nom_B, sizeof(nom_B), "B_%d.txt", n);
+        snprintf(nom_res, sizeof(nom_res), "resultat_produit_A%d_B%d.txt", n, n);
+
+        int *A = chargerMatriceTexte(nom_A, n * n);
+        int *B = chargerMatriceTexte(nom_B, n * n);
+        if (!A || !B) {
+            printf("%-10d | [INFO] Fichiers non trouves dans data/\n", n);
+            if (A) free(A);
+            if (B) free(B);
+            continue;
+        }
+
+        int *C = (int *)calloc((size_t)n * n, sizeof(int));
+        clock_t t0 = clock();
+        produitMatricesCarrees(n, A, B, C);
+        clock_t t1 = clock();
+        double duree_ms = (double)(t1 - t0) * 1000.0 / CLOCKS_PER_SEC;
+
+        long long nb_ops = (long long)n * n * n;
+        printf("%-10d | %-16lld | %-16.3f | %-12.6f\n", n, nb_ops, duree_ms, duree_ms / 1000.0);
+
+        if (csv) {
+            fprintf(csv, "%d,%lld,%.4f,%.6f\n", n, nb_ops, duree_ms, duree_ms / 1000.0);
+        }
+
+        // Sauvegarde individuelle de la matrice dans resultats/
+        sauvegarderResultatProduit(nom_res, n, duree_ms, C);
+
+        free(A);
+        free(B);
+        free(C);
+    }
+
+    if (csv) {
+        fclose(csv);
+        printf("-> [TABLEAU CSV GENERE] : resultats/recapitulatif_exercice1_produit.csv\n");
+    }
 }
 
 // -------------------------------------------------------------------------
-// PARTIE 2 : Test avec les vrais fichiers du dossier data/ (Ex: n = 100)
+// EXERCICE 2 : Batterie de tests automatique sur TOUS les fichiers data/
+// Toutes les tailles n = 100 à 1000 et k = 10 à 50
 // -------------------------------------------------------------------------
-void demo_fichiers_data(void)
+void tester_exercice_2_automatique(void)
 {
-    printf("\n============================================================\n");
-    printf("   2. TEST EN CONDITIONS REELLES SUR LE DOSSIER data/\n");
-    printf("   (Mesure du temps d'execution CPU pour n = 100)\n");
-    printf("============================================================\n");
+    printf("\n========================================================================\n");
+    printf("   2. EXERCICE 2 : BATTERIE COMPLETE RECHERCHE DE SOUS-MATRICE B DANS A\n");
+    printf("   (Toutes les combinaisons n de 100 a 1000 et k de 10 a 50)\n");
+    printf("========================================================================\n");
 
-    // 1. Exercice 1 : Produit de deux matrices 100 x 100 (1 000 000 operations)
-    printf("\n>>> TEST EXERCICE 1 SUR DATA : A_100.bin x B_100.bin (100 x 100) ...\n");
-    int n1 = 100;
-    int *A_data = chargerMatriceBinaire("A_100.bin", n1 * n1);
-    int *B_data = chargerMatriceBinaire("B_100.bin", n1 * n1);
-    int *C_data = (int *)calloc(n1 * n1, sizeof(int));
+    int tailles_n[] = {100, 200, 400, 600, 800, 1000};
+    int nb_n = sizeof(tailles_n) / sizeof(tailles_n[0]);
 
-    if (A_data && B_data && C_data) {
-        clock_t t0 = clock();
-        produitMatricesCarrees(n1, A_data, B_data, C_data);
-        clock_t t1 = clock();
-        double duree_ms = (double)(t1 - t0) * 1000.0 / CLOCKS_PER_SEC;
+    int tailles_k[] = {10, 20, 30, 40, 50};
+    int nb_k = sizeof(tailles_k) / sizeof(tailles_k[0]);
 
-        printf("-> [SUCCES] Produit C(100, 100) calcule avec succes !\n");
-        printf("-> Temps d'execution CPU : %.3f ms (soit %.6f secondes)\n", duree_ms, duree_ms / 1000.0);
-        printf("-> Verification case C[0][0] = %d\n", C_data[0]);
-
-        free(A_data);
-        free(B_data);
-        free(C_data);
-    } else {
-        printf("-> [INFO] Fichiers A_100.bin / B_100.bin non trouves dans data/.\n");
+    FILE *csv = ouvrirFichierResultat("recapitulatif_exercice2_recherche.csv", "w");
+    if (csv) {
+        fprintf(csv, "Taille_n,Taille_k,Pos_Attendue,Pos_sousMat1,Temps_sousMat1_ms,Pos_sousMat2,Temps_sousMat2_ms,Ratio_Gain\n");
     }
 
-    // 2. Exercice 2 : Recherche de sous-matrice sur data (n = 100, k = 10)
-    // D'apres ex2_positions.csv, la position attendue est (90, 90)
-    printf("\n>>> TEST EXERCICE 2 SUR DATA : Recherche de B (10x10) dans A (100x100) ...\n");
+    printf("%-7s | %-7s | %-12s | %-18s | %-18s | %-10s\n", 
+           "n", "k", "Position", "sousMat1 (Naive)", "sousMat2 (Optim)", "Gain");
+    printf("------------------------------------------------------------------------------------------\n");
 
-    // A. sousMat1 sur matrice non triée
-    int *A_nt = chargerMatriceBinaire("A_nontriee_100.bin", 100 * 100);
-    int *B_nt = chargerMatriceBinaire("B_nontriee_100_10.bin", 10 * 10);
-    if (A_nt && B_nt) {
-        int pos_i = -1, pos_j = -1;
-        clock_t t0 = clock();
-        int ok = sousMat1(100, 100, A_nt, 10, 10, B_nt, &pos_i, &pos_j);
-        clock_t t1 = clock();
-        double duree_ms = (double)(t1 - t0) * 1000.0 / CLOCKS_PER_SEC;
+    for (int in = 0; in < nb_n; in++) {
+        int n = tailles_n[in];
 
-        printf("-> sousMat1 (Naive)     : Position = (%d, %d) [Attendu: (90, 90)] | Temps = %.3f ms\n", 
-               pos_i, pos_j, duree_ms);
+        // Charger A une seule fois par taille n pour optimiser la vitesse de lecture disque
+        char nom_A_nt[64], nom_A_tr[64];
+        snprintf(nom_A_nt, sizeof(nom_A_nt), "A_nontriee_%d.txt", n);
+        snprintf(nom_A_tr, sizeof(nom_A_tr), "A_triee_%d.txt", n);
+
+        int *A_nt = chargerMatriceTexte(nom_A_nt, n * n);
+        int *A_tr = chargerMatriceTexte(nom_A_tr, n * n);
+
+        if (!A_nt || !A_tr) {
+            printf("%-7d | [INFO] Matrices A_%d non trouvees dans data/\n", n, n);
+            if (A_nt) free(A_nt);
+            if (A_tr) free(A_tr);
+            continue;
+        }
+
+        for (int ik = 0; ik < nb_k; ik++) {
+            int k = tailles_k[ik];
+
+            char nom_B_nt[64], nom_B_tr[64], nom_res[64];
+            snprintf(nom_B_nt, sizeof(nom_B_nt), "B_nontriee_%d_%d.txt", n, k);
+            snprintf(nom_B_tr, sizeof(nom_B_tr), "B_triee_%d_%d.txt", n, k);
+            snprintf(nom_res, sizeof(nom_res), "resultat_recherche_A%d_B%d.txt", n, k);
+
+            int *B_nt = chargerMatriceTexte(nom_B_nt, k * k);
+            int *B_tr = chargerMatriceTexte(nom_B_tr, k * k);
+
+            int ok1 = 0, pos_i1 = -1, pos_j1 = -1;
+            double duree1_ms = 0.0;
+            if (B_nt) {
+                clock_t t0 = clock();
+                ok1 = sousMat1(n, n, A_nt, k, k, B_nt, &pos_i1, &pos_j1);
+                clock_t t1 = clock();
+                duree1_ms = (double)(t1 - t0) * 1000.0 / CLOCKS_PER_SEC;
+                free(B_nt);
+            }
+
+            int ok2 = 0, pos_i2 = -1, pos_j2 = -1;
+            double duree2_ms = 0.0;
+            if (B_tr) {
+                clock_t t0 = clock();
+                ok2 = sousMat2(n, n, A_tr, k, k, B_tr, &pos_i2, &pos_j2);
+                clock_t t1 = clock();
+                duree2_ms = (double)(t1 - t0) * 1000.0 / CLOCKS_PER_SEC;
+                free(B_tr);
+            }
+
+            if (ok1 && ok2) {
+                char pos_str[32];
+                snprintf(pos_str, sizeof(pos_str), "(%d, %d)", pos_i1, pos_j1);
+
+                char t1_str[32], t2_str[32], gain_str[32];
+                snprintf(t1_str, sizeof(t1_str), "%.3f ms", duree1_ms);
+                snprintf(t2_str, sizeof(t2_str), "%.3f ms", duree2_ms);
+
+                if (duree2_ms > 0.00001) {
+                    snprintf(gain_str, sizeof(gain_str), "x %.1f", duree1_ms / duree2_ms);
+                } else {
+                    snprintf(gain_str, sizeof(gain_str), "Instantane");
+                }
+
+                printf("%-7d | %-7d | %-12s | %-18s | %-18s | %-10s\n",
+                       n, k, pos_str, t1_str, t2_str, gain_str);
+
+                if (csv) {
+                    int attendu_i = n - k, attendu_j = n - k;
+                    fprintf(csv, "%d,%d,\"(%d;%d)\",\"(%d;%d)\",%.4f,\"(%d;%d)\",%.4f,%.2f\n",
+                            n, k, attendu_i, attendu_j, 
+                            pos_i1, pos_j1, duree1_ms, 
+                            pos_i2, pos_j2, duree2_ms,
+                            (duree2_ms > 0.0001) ? (duree1_ms / duree2_ms) : 1.0);
+                }
+
+                sauvegarderResultatRecherche(nom_res, nom_A_nt, nom_B_nt, n, n, k, k,
+                                             ok1, pos_i1, pos_j1, duree1_ms,
+                                             ok2, pos_i2, pos_j2, duree2_ms);
+            }
+        }
+
         free(A_nt);
-        free(B_nt);
+        free(A_tr);
     }
 
-    // B. sousMat2 sur matrice triée
-    int *A_tr = chargerMatriceBinaire("A_triee_100.bin", 100 * 100);
-    int *B_tr = chargerMatriceBinaire("B_triee_100_10.bin", 10 * 10);
-    if (A_tr && B_tr) {
-        int pos_i = -1, pos_j = -1;
-        clock_t t0 = clock();
-        int ok = sousMat2(100, 100, A_tr, 10, 10, B_tr, &pos_i, &pos_j);
-        clock_t t1 = clock();
-        double duree_ms = (double)(t1 - t0) * 1000.0 / CLOCKS_PER_SEC;
-
-        printf("-> sousMat2 (Optimisee) : Position = (%d, %d) [Attendu: (90, 90)] | Temps = %.3f ms\n", 
-               pos_i, pos_j, duree_ms);
-        free(A_tr);
-        free(B_tr);
+    if (csv) {
+        fclose(csv);
+        printf("\n-> [TABLEAU CSV GENERE] : resultats/recapitulatif_exercice2_recherche.csv\n");
     }
 }
 
 int main(void)
 {
-    printf("============================================================\n");
-    printf("   TP N03 : COMPLEXITE POLYNOMIALE - USTHB 2026/2027\n");
-    printf("   Algorithmique Avancee & Complexite - Master 1 RSD / IL\n");
-    printf("============================================================\n");
+    printf("========================================================================\n");
+    printf("   TP N03 : COMPLEXITE POLYNOMIALE\n");
+    printf("========================================================================\n");
 
-    demo_petits_exemples();
-    demo_fichiers_data();
+    // demo_petits_exemples(); // 
 
-    printf("\n============================================================\n");
+    tester_exercice_1_automatique();
+    tester_exercice_2_automatique();
+
+    printf("\n========================================================================\n");
     printf("   TOUS LES TESTS SE SONT DEROULES AVEC SUCCES !\n");
-    printf("============================================================\n");
+    printf("   Les fichiers de resultats et CSV sont dans le dossier 'resultats/'\n");
+    printf("========================================================================\n");
     return 0;
 }
