@@ -4,6 +4,8 @@
 ##  Tri a bulle
 ## Tri rapide 
 - on prend une valeur Pivot , mis au milieu , ceux quisont sup a gauche et ceux qui sont inf a droite
+
+![alt text](image-1.png)
 ## Tri gnome 
 ## Tri distribution (tri basse) 
 - cle(115,0) = 5 // elle retourne le numero de position unite 
@@ -15,6 +17,7 @@ donc si on fait le tri avec la fonction cle() , en le fait selon soit le chiffre
 ## Tri par tas
 - tas est un arbre 
 - chaque fois on extre le max on fait une permutation puis n inverse avec la racine
+ ![alt text](image.png)
 
 # rapport 
 - description du tri

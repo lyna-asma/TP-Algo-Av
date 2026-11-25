@@ -1,0 +1,20 @@
+============================================================
+RESULTAT- EXERCICE 2 : RECHERCHE DE SOUS-MATRICE B DANS A
+============================================================
+
+Fichier Matrice A (Source)      : A_nontriee_1000.txt (1000 x 1000)
+Fichier Sous-Matrice B (Motif)  : B_nontriee_1000_30.txt (30 x 30)
+
+1. SOUS-MATRICE NON TRIEE (sousMat1 - Approche Naive) :
+   -> Statut            : TROUVEE
+   -> Position (i, j)   : Ligne = 970, Colonne = 970
+   -> Temps d'execution : 3.0000 ms (0.003000 s)
+
+2. SOUS-MATRICE AVEC LIGNES TRIEES (sousMat2 - Approche Optimisee) :
+   -> Statut            : TROUVEE
+   -> Position (i, j)   : Ligne = 970, Colonne = 970
+   -> Temps d'execution : 0.0000 ms (0.000000 s)
+
+3. COMPARAISON ET ANALYSE :
+   -> sousMat2 tire profit du tri des lignes pour eliminer des lignes en O(1)
+      et localiser la colonne de depart par dichotomie en O(log m).

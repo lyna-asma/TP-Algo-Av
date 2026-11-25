@@ -33,9 +33,15 @@
 void produitMatrices(int n, int m, int p, const int *A, const int *B, int *C)
 {
     for (int i = 0; i < n; i++) {
+        // fixer la ligne de A
         for (int j = 0; j < p; j++) {
+            // fixer la colonne de B
             int somme = 0;
             for (int k = 0; k < m; k++) {
+                // parcourir les deux matrice 
+                // fixer la colonne de A et la ligne de B 
+                // l element du tableau  A est de position (position ligne de mat A )*( nbr de colonnes de mat A) + ( la position colonne dans mat A )
+                // l element d Tableau B est de position   (Position de la ligne dans mat B) + (Position de la colonne dans mat B) * ( le nr de lignes de la mat B)
                 somme += A[i * m + k] * B[k * p + j];
             }
             C[i * p + j] = somme;
